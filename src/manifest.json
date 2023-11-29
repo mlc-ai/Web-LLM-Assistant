@@ -9,7 +9,7 @@
     "64": "icons/icon-64.png",
     "128": "icons/icon-128.png"
   },
-  "content_security_policy": "style-src-elem 'self' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; default-src 'self' data:; connect-src 'self' data: http://localhost:8000 https://huggingface.co https://cdn-lfs.huggingface.co https://raw.githubusercontent.com",
+  "content_security_policy": "style-src-elem 'self'; font-src 'self' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; default-src 'self' data:; connect-src 'self' data: http://localhost:8000 https://huggingface.co https://cdn-lfs.huggingface.co https://raw.githubusercontent.com;",
   "commands": {
     "showModal": {
         "suggested_key": {
@@ -32,6 +32,11 @@
   "background": {
     "scripts": ["background.ts"],
     "persistent": false
+  },
+  "options_page": "options.html",
+  "options_ui": {
+    "chrome_style": true,
+    "page": "options.html"
   },
   "permissions": [
       "storage",

@@ -1,8 +1,17 @@
 var selectedText = "";
 var modalVisible = false;
-var inlineMode = true;
 var lastInlineNode = null;
 var inlineAnswerNodes = Array();
+
+var inlineMode;
+chrome.storage.sync.get(
+    { inlineMode: false },
+    (items) => {
+        inlineMode = items.inlineMode;
+        console.log("Inline mode set to", inlineMode);
+    }
+);
+
 
 function hideModalIfVisible() {
     if (modalVisible) {
