@@ -45,5 +45,8 @@ Launch Google Chrome and navigate to the extensions page by entering `chrome://e
 
 <img src="https://github.com/mlc-ai/mlc-assistant/assets/11940172/cdb18fb3-24c5-41bf-9a40-484692c2150a" width="300">
 
+### 7. Enable inline generation (optional)
+If you'd like your text to be generated directly in the document (instead of in a popup), enable inline generation by going to `chrome://extensions`, selecting *Details* for the `mlc-assistant`, clicking on *Extension options*, and then toggling the inline generation option.
+
 
 You can now go to any Overleaf document, and select `Alt + Shift + 3` to invoke the MLC Assistant!
