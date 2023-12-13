@@ -22,9 +22,12 @@ conda activate mlc_assistant
 Follow the steps below (only for CPU on macOS, Windows, or Linux) to set up MLC LLM on your local machine. For usage with GPU, follow the instructions [here](https://llm.mlc.ai/docs/install/mlc_llm.html).
 
 ```bash
+# Install MLC packages
 python -m pip install --pre -U -f https://mlc.ai/wheels mlc-chat-nightly mlc-ai-nightly
+# Enable Git LFS to clone large directories
 git lfs install
 mkdir -p mlc-llm/dist/prebuilt
+# Download prebuilt binaries and model parameters
 git clone https://github.com/mlc-ai/binary-mlc-llm-libs.git mlc-llm/dist/prebuilt/lib
 cd mlc-llm/dist/prebuilt && git clone https://huggingface.co/mlc-ai/mlc-chat-Llama-2-7b-chat-hf-q4f16_1
 cd ../..
