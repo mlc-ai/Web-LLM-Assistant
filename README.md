@@ -43,7 +43,7 @@ python -m mlc_chat.rest --model Llama-2-7b-chat-hf-q4f16_1
 ### 6. Install the Chrome extension <a id='step6'></a>
 Launch Google Chrome and navigate to the extensions page by entering `chrome://extensions`. Enable Developer Mode by clicking the toggle switch next to Developer mode. Click the Load unpacked button and select the `mlc-assistant/dist` directory.
 
-![extensions-page-e0d64d89a6acf_1920](https://github.com/mlc-ai/mlc-assistant/assets/11940172/cdb18fb3-24c5-41bf-9a40-484692c2150a)
+<img src="https://github.com/mlc-ai/mlc-assistant/assets/11940172/cdb18fb3-24c5-41bf-9a40-484692c2150a" width="300">
 
 
 You can now go to any Overleaf document, and select `Alt + Shift + 3` to invoke the MLC Assistant!
