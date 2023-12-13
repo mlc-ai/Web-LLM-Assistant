@@ -1,47 +1,50 @@
 {
-  "manifest_version": 2,
-  "name": "mlc-assistant",
-  "version": "0.1.0",
-  "description": "Chat with your browser",
-  "icons": {
-    "16": "icons/icon-16.png",
-    "32": "icons/icon-32.png",
-    "64": "icons/icon-64.png",
-    "128": "icons/icon-128.png"
-  },
-  "content_security_policy": "style-src-elem 'self'; font-src 'self' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; default-src 'self' data:; connect-src 'self' data: http://localhost:8000 https://huggingface.co https://cdn-lfs.huggingface.co https://raw.githubusercontent.com;",
-  "commands": {
-    "showModal": {
-        "suggested_key": {
-            "default": "Alt+Shift+3"
-        },
-        "description": "Show the modal within the current page."
-    }
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"]
-    }
-  ],
-  "web_accessible_resources": [
-      "icons/icon-32.png",
-      "icons/wand-64.png"
-  ],
-  "background": {
-    "scripts": ["background.ts"],
-    "persistent": false
-  },
-  "options_page": "options.html",
-  "options_ui": {
-    "chrome_style": true,
-    "page": "options.html"
-  },
-  "permissions": [
-      "storage",
-      "tabs",
-      "webNavigation",
-      "activeTab"
-  ]
-}
+    "manifest_version": 3,
+    "name": "mlc-assistant",
+    "version": "0.1.0",
+    "description": "Chat with your browser",
+    "icons": {
+        "16": "icons/icon-16.png",
+        "32": "icons/icon-32.png",
+        "64": "icons/icon-64.png",
+        "128": "icons/icon-128.png"
+    },
+    "content_security_policy": {
+      "extension_pages": "style-src-elem 'self' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; script-src 'self' 'wasm-unsafe-eval'; default-src 'self' data:; connect-src 'self' data: http://localhost:8000 https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.huggingface.co https://raw.githubusercontent.com"
+    },
+    "background": {
+      "service_worker": "background.ts",
+      "type": "module"
+    },
+    "content_scripts": [
+        {
+          "matches": ["<all_urls>"],
+          "js": ["content.js"],
+          "css": ["content.css"]
+        }
+    ],
+    "commands": {
+        "showModal": {
+            "suggested_key": {
+                "default": "Alt+Shift+3"
+            },
+            "description": "Show the modal within the current page."
+        }
+    },
+    "web_accessible_resources": [
+        {
+            "resources": ["icons/icon-32.png", "icons/wand-64.png"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": false
+    },
+    "permissions": [
+        "storage",
+        "tabs",
+        "webNavigation",
+        "activeTab"
+    ]
+  }
