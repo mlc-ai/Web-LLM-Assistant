@@ -1,6 +1,8 @@
 # MLC Assistant
 Chat with your documents and improve your writing using large-language models in your browser.
 
+![mlc_assistant_demo](https://github.com/mlc-ai/mlc-assistant/assets/11940172/33578ac7-cd86-47ba-8710-02c2c568c57e)
+
 ## Getting Started
 
 ### 1. Install Git LFS
