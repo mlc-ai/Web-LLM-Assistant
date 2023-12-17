@@ -1,5 +1,5 @@
 # MLC Assistant
-Chat with your documents and improve your writing using large-language models in your browser. We currently support using the MLC Assistant in [Overleaf](https://www.overleaf.com/), and plan on adding support for other platforms soon.
+Chat with your documents and improve your writing using large-language models in your browser. We currently support using the MLC Assistant in Google Chrome with [Overleaf](https://www.overleaf.com/), and plan on adding support for other platforms and browsers soon.
 
 ![demo](https://github.com/mlc-ai/mlc-assistant/assets/11940172/51f0668d-860e-4014-b104-4d2e0e7b334e)
 
