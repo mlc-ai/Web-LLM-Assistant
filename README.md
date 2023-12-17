@@ -1,4 +1,6 @@
-# MLC Assistant
+<img width="865" alt="image" src="https://github.com/mlc-ai/mlc-assistant/assets/11940172/2d38b8e1-21e8-44b1-b772-83e72a22d638">
+
+
 Chat with your documents and improve your writing using large-language models in your browser. We currently support using the MLC Assistant in Google Chrome with [Overleaf](https://www.overleaf.com/), and plan on adding support for other platforms and browsers soon.
 
 ![demo](https://github.com/mlc-ai/mlc-assistant/assets/11940172/51f0668d-860e-4014-b104-4d2e0e7b334e)
@@ -58,3 +60,10 @@ If you'd like your text to be generated directly in the document (instead of in 
 
 
 You can now go to any Overleaf document, and select `Option + Shift + 3` to invoke the MLC Assistant!
+
+## Links
+- You might want to check out our online public [Machine Learning Compilation course](https://mlc.ai) for a systematic
+walkthrough of our approaches.
+- [WebLLM](https://webllm.mlc.ai/) is a companion project using MLC LLM's WebGPU and WebAssembly backend.
+- [WebStableDiffusion](https://websd.mlc.ai/) is a companion project for diffusion models with the WebGPU backend.
+- Icon from [FlatIcon](https://www.flaticon.com/free-icon/chat_2665038?related_id=2665051&origin=search)
