@@ -1,7 +1,7 @@
 # MLC Assistant
-Chat with your documents and improve your writing using large-language models in your browser.
+Chat with your documents and improve your writing using large-language models in your browser. We currently support using the MLC Assistant in [Overleaf](https://www.overleaf.com/), and plan on adding support for other platforms soon.
 
-![mlc_assistant_demo](https://github.com/mlc-ai/mlc-assistant/assets/11940172/33578ac7-cd86-47ba-8710-02c2c568c57e)
+![demo](https://github.com/mlc-ai/mlc-assistant/assets/11940172/51f0668d-860e-4014-b104-4d2e0e7b334e)
 
 ## Getting Started
 
@@ -57,4 +57,4 @@ Launch Google Chrome and navigate to the extensions page by entering `chrome://e
 If you'd like your text to be generated directly in the document (instead of in a popup), enable inline generation by going to `chrome://extensions`, selecting *Details* for the `mlc-assistant`, clicking on *Extension options*, and then toggling the inline generation option.
 
 
-You can now go to any Overleaf document, and select `Alt + Shift + 3` to invoke the MLC Assistant!
+You can now go to any Overleaf document, and select `Option + Shift + 3` to invoke the MLC Assistant!
