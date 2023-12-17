@@ -24,12 +24,15 @@ Follow the steps below (only for CPU on macOS, Windows, or Linux) to set up MLC 
 ```bash
 # Install MLC packages
 python -m pip install --pre -U -f https://mlc.ai/wheels mlc-chat-nightly mlc-ai-nightly
+
 # Enable Git LFS to clone large directories
 git lfs install
 mkdir -p mlc-llm/dist/prebuilt
+
 # Download prebuilt binaries and model parameters
+# Note: This will install the Mistral model parameters, but for other models simply clone the parameters of the model you would like to run
 git clone https://github.com/mlc-ai/binary-mlc-llm-libs.git mlc-llm/dist/prebuilt/lib
-cd mlc-llm/dist/prebuilt && git clone https://huggingface.co/mlc-ai/mlc-chat-Llama-2-7b-chat-hf-q4f16_1
+cd mlc-llm/dist/prebuilt && git clone https://huggingface.co/mlc-ai/mlc-chat-Mistral-7B-Instruct-v0.2-q4f16_1
 cd ../..
 ```
 
@@ -42,7 +45,7 @@ npm run install
 ### 5. Launch the local server
 ```bash
 cd mlc-llm
-python -m mlc_chat.rest --model Llama-2-7b-chat-hf-q4f16_1
+python -m mlc_chat.rest --model Mistral-7B-Instruct-v0.2-q4f16_1
 ```
 
 ### 6. Install the Chrome extension <a id='step6'></a>

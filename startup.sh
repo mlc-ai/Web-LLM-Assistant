@@ -13,10 +13,10 @@ else
     echo "Downloading prebuilt binaries and model parameters."
     mkdir -p mlc-llm/dist/prebuilt
     git clone https://github.com/mlc-ai/binary-mlc-llm-libs.git mlc-llm/dist/prebuilt/lib
-    cd mlc-llm/dist/prebuilt && git clone https://huggingface.co/mlc-ai/mlc-chat-Llama-2-7b-chat-hf-q4f16_1
+    cd mlc-llm/dist/prebuilt && git clone https://huggingface.co/mlc-ai/mlc-chat-Mistral-7B-Instruct-v0.2-q4f16_1
     cd ../..
 fi
 
 # Start the local server
 cd mlc-llm
-python -m mlc_chat.rest --model Llama-2-7b-chat-hf-q4f16_1
+python -m mlc_chat.rest --model Mistral-7B-Instruct-v0.2-q4f16_1
