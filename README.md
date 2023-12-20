@@ -17,11 +17,30 @@ conda create --name mlc_assistant python=3.10
 conda activate mlc_assistant
 ```
 
-**Note: For quick start, skip Steps 3-5, run `./startup.sh`, and continue from [Step 6](#step6).**
+### 3. Run the startup script
+This will start the server which runs the model locally, so that the Chrome extension can communicate with it.
+```bash
+./startup.sh
+```
 
-### 3. Set up MLC LLM
+### 4. Install the Chrome extension <a id='step6'></a>
+Launch Google Chrome and navigate to the extensions page by entering `chrome://extensions`. Enable Developer Mode by clicking the toggle switch next to Developer mode. Click the Load unpacked button and select the `mlc-assistant/dist` directory.
 
-Follow the steps below (only for CPU on macOS, Windows, or Linux) to set up MLC LLM on your local machine. For usage with GPU, follow the instructions [here](https://llm.mlc.ai/docs/install/mlc_llm.html).
+<img src="https://github.com/mlc-ai/mlc-assistant/assets/11940172/cdb18fb3-24c5-41bf-9a40-484692c2150a" width="300">
+
+### 5. Enable inline generation (optional)
+If you'd like your text to be generated directly in the document (instead of in a popup), enable inline generation by going to `chrome://extensions`, selecting *Details* for the `mlc-assistant`, clicking on *Extension options*, and then toggling the inline generation option.
+
+
+You can now go to any Overleaf document, and select `Option + Shift + 3` to invoke the MLC Assistant!
+
+## Development
+
+If you'd like to contribute to development, or customize this implementation further, you can follow these steps.
+
+### Setting up MLC LLM
+
+Follow the steps below (only for CPU on macOS, Windows, or Linux) to set up MLC LLM on your local machine. For usage with GPU, follow the instructions [here](https://llm.mlc.ai/docs/install/mlc_llm.html). You can customize the model that is used by changing the model parameters that are cloned in the last step. To see the other models that are supported, go [here](https://huggingface.co/mlc-ai/).
 
 ```bash
 # Install MLC packages
@@ -38,28 +57,20 @@ cd mlc-llm/dist/prebuilt && git clone https://huggingface.co/mlc-ai/mlc-chat-Mis
 cd ../..
 ```
 
-### 4. Build the Chrome extension (optional)
-```bash
-npm run build
-npm run install
-```
+You can now launch the local server. Depending on the model you chose above, the command for this will be different.
 
-### 5. Launch the local server
 ```bash
 cd mlc-llm
 python -m mlc_chat.rest --model Mistral-7B-Instruct-v0.2-q4f16_1
 ```
 
-### 6. Install the Chrome extension <a id='step6'></a>
-Launch Google Chrome and navigate to the extensions page by entering `chrome://extensions`. Enable Developer Mode by clicking the toggle switch next to Developer mode. Click the Load unpacked button and select the `mlc-assistant/dist` directory.
+### Building the Chrome extension
+If you make any changes to the extension and would like to rebuild it, you will need to run the following commands. Start by installing `npm` [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
-<img src="https://github.com/mlc-ai/mlc-assistant/assets/11940172/cdb18fb3-24c5-41bf-9a40-484692c2150a" width="300">
-
-### 7. Enable inline generation (optional)
-If you'd like your text to be generated directly in the document (instead of in a popup), enable inline generation by going to `chrome://extensions`, selecting *Details* for the `mlc-assistant`, clicking on *Extension options*, and then toggling the inline generation option.
-
-
-You can now go to any Overleaf document, and select `Option + Shift + 3` to invoke the MLC Assistant!
+```bash
+npm run build
+npm run install
+```
 
 ## Links
 - You might want to check out our online public [Machine Learning Compilation course](https://mlc.ai) for a systematic
