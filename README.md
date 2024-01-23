@@ -77,7 +77,4 @@ npm run install
 walkthrough of our approaches.
 - [WebLLM](https://webllm.mlc.ai/) is a companion project using MLC LLM's WebGPU and WebAssembly backend.
 - [WebStableDiffusion](https://websd.mlc.ai/) is a companion project for diffusion models with the WebGPU backend.
-- Icon from [FlatIcon](https://www.flaticon.com/free-icon/chat_2665038?related_id=2665051&origin=search)
-- Thumbs Up Lined Icon from [FlatIcon](https://www.flaticon.com/free-icon/thumbs-up_2415418)
-- Thumbs Up Solid Color Icon from [FlatIcon](https://www.flaticon.com/free-icon/thumb-up_4477657)
-- Redo Icon from [FlatIcon](https://www.flaticon.com/free-icon/redo_3185862)
+- Icons from [FlatIcon](https://www.flaticon.com/)
