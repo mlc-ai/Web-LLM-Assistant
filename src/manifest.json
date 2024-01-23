@@ -33,7 +33,8 @@
     },
     "web_accessible_resources": [
         {
-            "resources": ["icons/icon-32.png", "icons/wand-64.png"],
+            "resources": ["icons/icon-32.png", "icons/wand-64.png", "icons/thumbs-up-lined.png", "icons/thumbs-up-filled.png",
+            "icons/thumbs-down-lined.png", "icons/thumbs-down-filled.png", "icons/redo.png"],
             "matches": ["<all_urls>"]
         }
     ],

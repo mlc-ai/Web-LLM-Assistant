@@ -45,3 +45,12 @@ textarea:focus, input:focus{
     overflow-y: scroll;
     /* max-height: 250px; */
 }
+
+.question {
+    font-size: 13px;
+    font-weight: 900;
+    color: white;
+    /* padding: 5px; */
+    overflow-y: scroll;
+    /* max-height: 250px; */
+}

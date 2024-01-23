@@ -22,6 +22,8 @@ function hideModalIfVisible() {
 }
 
 function handleSubmit() {
+    const input = document.getElementById("modalInput");
+
     if (inlineMode) {
         lastInlineNode = selectInlineNode();
         const beginNode = document.createElement("div");
@@ -39,11 +41,23 @@ function handleSubmit() {
         // Show the action bar 
         const actionsDiv = document.getElementById("actions")
         actionsDiv.style.display = "flex";
+        //show the question
+        const questionDiv = document.getElementById("question")
+        questionDiv.style.display = "flex"
+        questionDiv.textContent = "You: "+input.value
+        questionDiv.value = input.value
+        //adjust height to include question and action bar
         const modalWrapperDiv = document.getElementById("modalWrapper");
-        modalWrapperDiv.style.height = "65px";
+        modalWrapperDiv.style.height = "auto";
     }
 
-    const input = document.getElementById("modalInput");
+    //reset feedback buttons
+    thumbsUp = document.getElementById("thumbsUpButtonImg")
+    thumbsUp.src = chrome.runtime.getURL("icons/thumbs-up-lined.png");
+    thumbsDown = document.getElementById("thumbsDownButtonImg")
+    thumbsDown.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
+
+
     chrome.runtime.sendMessage({
         input: input.value,
         selection: selectedText,
@@ -83,6 +97,84 @@ function createModalWrapper(contentDiv, boundingRect, topMargin, leftRightMargin
     return modalWrapperDiv
 }
 
+function saveFeedback(good){
+    //Determine what data should be written
+    let question = document.getElementById("question").value
+    let answer = document.getElementById("answer").textContent
+    const data = 'Question: '+ question + '\n Answer: '+ answer + '\n\n'
+
+    //Get the file
+    let fileTemp = 'BadResponse.txt'
+    if (good){
+        //write to good answer file
+        fileTemp = 'GoodResponse.txt'
+    }
+    const file = fileTemp
+
+    //Append the data (Creates file if it does not exist)
+    const fs = require('browserify-fs');
+
+    // Append data to a file
+    fs.appendFile(file, data, (err) => {
+    if (err) {
+        console.log(err);
+    } else {
+        console.log('Data appended successfully!');
+    }
+    });
+    let feedbackText = prompt("Do you have further feedback?");
+    console.log("The following feedback has been recieved: ", feedbackText);
+}
+
+function createFeedbackButtons(){
+    //make thumbs up button
+    var thumbsUp = document.createElement('button')
+    // thumbsUp.textContent = "Good Answer";
+    thumbsUp.style.fontSize = "10px";
+    thumbsUp.style.backgroundColor = "transparent";
+    thumbsUp.style.border = "none";
+    thumbsUp.style.marginRight = "5px";
+    thumbsUp.style.color = "rgba(255, 255, 255, 0.6)";
+    //make button a lined thumbs up image
+    var ThumbsUpImg = new Image(15, 15);
+    ThumbsUpImg.id = "thumbsUpButtonImg"
+    ThumbsUpImg.src = chrome.runtime.getURL("icons/thumbs-up-lined.png");
+    thumbsUp.append(ThumbsUpImg)
+
+    //make thumbs down button
+    var thumbsDown = document.createElement('button')
+    // thumbsDown.textContent = "Bad Answer";
+    thumbsDown.style.fontSize = "10px";
+    thumbsDown.style.backgroundColor = "transparent";
+    thumbsDown.style.border = "none";
+    thumbsDown.style.marginRight = "5px";
+    thumbsDown.style.color = "rgba(255, 255, 255, 0.6)";
+    //make button a lined thumbs down image
+    var ThumbsDownImg = new Image(15, 15);
+    ThumbsDownImg.id = "thumbsDownButtonImg"
+    ThumbsDownImg.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
+    thumbsDown.append(ThumbsDownImg)
+
+    //add clicking features
+    thumbsUp.addEventListener("click", () => {
+        console.log("Saving as good answer")
+        //update image
+        ThumbsUpImg.src = chrome.runtime.getURL("icons/thumbs-up-filled.png");
+        ThumbsDownImg.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
+        saveFeedback(true)
+    });
+
+    thumbsDown.addEventListener("click", () => {
+        console.log("Saving as bad answer")
+        //update image
+        ThumbsUpImg.src = chrome.runtime.getURL("icons/thumbs-up-lined.png");
+        ThumbsDownImg.src = chrome.runtime.getURL("icons/thumbs-down-filled.png");
+        saveFeedback(false)
+    });
+
+   return [thumbsUp, thumbsDown]
+}
+
 function createActionBar(contentDiv, leftRightMargin) {
     var actionsDiv = document.createElement("div");
     actionsDiv.className = "actions";
@@ -107,6 +199,10 @@ function createActionBar(contentDiv, leftRightMargin) {
     });
 
     actionsDiv.appendChild(replaceAction);
+    //Create feedback buttons
+    const [thumbsUp, thumbsDown] = createFeedbackButtons()
+    actionsDiv.appendChild(thumbsDown);
+    actionsDiv.appendChild(thumbsUp);
 
     return actionsDiv;
 }
@@ -163,6 +259,20 @@ function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
     return modalDiv;
 }
 
+function createQuestionModal(contentDiv, leftRightMargin) {
+    var questionDiv = document.createElement("div");
+    questionDiv.className = "question";
+    questionDiv.id = "question";
+    questionDiv.placeholder = "This is the question."
+
+    questionDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
+    questionDiv.style.height = "auto";
+    questionDiv.style.display = "none";
+    questionDiv.textContent = ""
+    questionDiv.style.padding = "5px";
+    return questionDiv;
+}
+
 function createAnswerModal(contentDiv, leftRightMargin) {
     var answerDiv = document.createElement("div");
     answerDiv.className = "answer";
@@ -200,6 +310,10 @@ function showModal() {
     // Create and add modal wrapper to DOM
     const modalWrapperDiv = createModalWrapper(contentDiv, boundingRect, topMargin, leftRightMargin)
     document.body.appendChild(modalWrapperDiv);
+
+    // Create question modal to display request
+    const questionDiv = createQuestionModal(contentDiv, leftRightMargin)
+    modalWrapperDiv.appendChild(questionDiv)
 
     // Create answer
     const answerDiv = createAnswerModal(contentDiv, leftRightMargin);
