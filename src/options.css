@@ -59,3 +59,12 @@
     display: flex;
     justify-content: space-between;
    }
+
+.promptCustom{
+    border-radius: 30px;
+    outline: 0;
+    color: #fff;
+    position: relative;
+    display: inline-block;
+    font-size: 17px;
+  }

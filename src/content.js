@@ -4,6 +4,7 @@ var lastInlineNode = null;
 var inlineAnswerNodes = Array();
 
 var inlineMode;
+//retrieve browser settings and determine inline mode
 chrome.storage.sync.get(
     { inlineMode: false },
     (items) => {
@@ -12,6 +13,14 @@ chrome.storage.sync.get(
     }
 );
 
+var customization;
+chrome.storage.sync.get(
+    {customization: 0},
+    (items) => {
+        customization = items.customization
+        console.log("Customization set to ", customization)
+    }
+)
 
 function hideModalIfVisible() {
     if (modalVisible) {
@@ -21,9 +30,21 @@ function hideModalIfVisible() {
     }
 }
 
-function handleSubmit() {
-    const input = document.getElementById("modalInput");
 
+function handleSubmit(regen) {
+
+    //Input depends on whether the question is new or is being regenerated
+    let inputTemp = document.getElementById("modalInput");
+
+    //If question is regenerating, get question
+    if (regen){
+        //change inputTemp to the question
+        inputTemp = document.getElementById("question")
+        console.log("regen input", inputTemp.value)
+    }
+
+    const input = inputTemp
+    
     if (inlineMode) {
         lastInlineNode = selectInlineNode();
         const beginNode = document.createElement("div");
@@ -46,6 +67,11 @@ function handleSubmit() {
         questionDiv.style.display = "flex"
         questionDiv.textContent = "You: "+input.value
         questionDiv.value = input.value
+
+        //Show drafts
+         const draftsDiv = document.getElementById("drafts")
+         draftsDiv.style.display = "flex";
+
         //adjust height to include question and action bar
         const modalWrapperDiv = document.getElementById("modalWrapper");
         modalWrapperDiv.style.height = "auto";
@@ -57,11 +83,27 @@ function handleSubmit() {
     thumbsDown = document.getElementById("thumbsDownButtonImg")
     thumbsDown.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
 
+    //adjust the query depending on the prompt customization
+    var query = "";
+    if (customization == 1){
+        query += "Respond creatively to the following: ";
+    }else if (customization == 2){
+        query += "Respond with precision to the following: "
+    }
 
+    query += input.value
+   
     chrome.runtime.sendMessage({
-        input: input.value,
+        input: query,
         selection: selectedText,
         source: "modal"
+    });
+
+
+    chrome.runtime.sendMessage({
+        input: query,
+        selection: selectedText,
+        source: "draft"
     });
 
     if (inlineMode) {
@@ -77,7 +119,7 @@ document.addEventListener("keydown", function(event) {
     if (modalVisible) {
         const input = document.getElementById("modalInput");
         if (key == "Enter" && input === document.activeElement) {
-            handleSubmit();
+            handleSubmit(false);
         }
     }
 });
@@ -90,7 +132,7 @@ function createModalWrapper(contentDiv, boundingRect, topMargin, leftRightMargin
     modalWrapperDiv.style.top = boundingRect.bottom + topMargin + "px";
     modalWrapperDiv.style.left = boundingRect.left + leftRightMargin + "px";
     modalWrapperDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
-    modalWrapperDiv.style.height = "40px";
+    modalWrapperDiv.style.height = "45px";
     modalWrapperDiv.style.display = "flex";
     modalWrapperDiv.style.position = "absolute";
     modalWrapperDiv.style.flexDirection = "column";
@@ -98,6 +140,8 @@ function createModalWrapper(contentDiv, boundingRect, topMargin, leftRightMargin
 }
 
 function saveFeedback(good){
+    console.log("in save feedback")
+
     //Determine what data should be written
     let question = document.getElementById("question").value
     let answer = document.getElementById("answer").textContent
@@ -123,8 +167,25 @@ function saveFeedback(good){
     }
     });
     let feedbackText = prompt("Do you have further feedback?");
-    console.log("The following feedback has been recieved: ", feedbackText);
+    console.log("feedback", feedbackText);
+
+
+
+    // require('mongodb');
+    // const uri = "mongodb+srv://abayyapu:FNCFPOPPfRqYri4N@cluster0.jgymg3g.mongodb.net/?retryWrites=true&w=majority";
+
+    // // Create a MongoClient with a MongoClientOptions object to set the Stable API version
+    // const client = new MongoClient(uri, {
+    // serverApi: {
+    //     version: ServerApiVersion.v1,
+    //     strict: true,
+    //     deprecationErrors: true,
+    // }
+    // });
+
+
 }
+
 
 function createFeedbackButtons(){
     //make thumbs up button
@@ -184,27 +245,92 @@ function createActionBar(contentDiv, leftRightMargin) {
     actionsDiv.style.display = "none";
     actionsDiv.style.flexDirection = "row-reverse";
 
+    //Create replace buttone
     var replaceAction = document.createElement('button');
-    replaceAction.textContent = "replace";
+    replaceAction.textContent = "Replace";
     replaceAction.style.fontSize = "10px";
     replaceAction.style.backgroundColor = "transparent";
     replaceAction.style.border = "none";
     replaceAction.style.marginRight = "10px";
     replaceAction.style.color = "rgba(255, 255, 255, 0.6)";
-
     replaceAction.addEventListener("click", () => {
         // Get output text
         const outputText = document.getElementById("answer").innerHTML;
         replaceSelectedText(outputText)
     });
-
     actionsDiv.appendChild(replaceAction);
+
+    //Create regenerate answer button
+    var regenerate = document.createElement('button')
+    // regenerate.textContent = "Regenerate";
+    regenerate.style.fontSize = "10px";
+    regenerate.style.backgroundColor = "transparent";
+    regenerate.style.border = "none";
+    regenerate.style.marginRight = "5px";
+    regenerate.style.color = "rgba(255, 255, 255, 0.6)";
+    //Create image for regenerate button
+    var regenerateImg = new Image(15, 15);
+    regenerateImg.src = chrome.runtime.getURL("icons/redo.png");
+    regenerate.append(regenerateImg)
+
+    regenerate.addEventListener("click", () => {
+        handleSubmit(true)
+    });
+    actionsDiv.appendChild(regenerate);
+
+
     //Create feedback buttons
     const [thumbsUp, thumbsDown] = createFeedbackButtons()
     actionsDiv.appendChild(thumbsDown);
     actionsDiv.appendChild(thumbsUp);
 
+    
     return actionsDiv;
+}
+
+function createDrafts(contentDiv, leftRightMargin){
+    var draftsDiv = document.createElement("div");
+    draftsDiv.className = "drafts";
+    draftsDiv.id = "drafts";
+    draftsDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
+    draftsDiv.style.height = "auto";
+    draftsDiv.style.display = "none";
+    draftsDiv.style.flexDirection = "row-reverse";
+
+    // draftsDiv.textContent = "Drafts"
+    var draft2 = document.createElement('button');
+    draft2.textContent = "Draft 2";
+    draft2.style.fontSize = "10px";
+    draft2.style.backgroundColor = "transparent";
+    draft2.style.border = "solid";
+    draft2.style.marginRight = "10px";
+    draft2.style.width = "50%"
+    draft2.style.color = "rgba(255, 255, 255, 0.6)";
+
+    draft2.addEventListener("click", () => {
+        handleSubmit(true)
+    });
+
+    var draft1 = document.createElement('button');
+    draft1.id = "draft1"
+    draft1.class = "draft1"
+    draft1.textContent = "Draft 1";
+    draft1.style.fontSize = "10px";
+    draft1.style.backgroundColor = "transparent";
+    draft1.style.border = "solid";
+    draft1.style.marginRight = "10px";
+    draft1.style.width = "50%"
+    draft1.style.height = "auto"
+    draft1.style.color = "rgba(255, 255, 255, 0.6)";
+
+    draft1.addEventListener("click", () => {
+        const answerDiv = document.getElementById("answer");
+        answerDiv.textContent = draft1.textContent;
+    });
+    draftsDiv.appendChild(draft2)
+    draftsDiv.appendChild(draft1)
+
+    return draftsDiv
 }
 
 function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
@@ -259,6 +385,14 @@ function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
     return modalDiv;
 }
 
+function createAnswerModal(contentDiv, leftRightMargin) {
+    var answerDiv = document.createElement("div");
+    answerDiv.className = "answer";
+    answerDiv.id = "answer";
+    answerDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
+    return answerDiv;
+}
+
 function createQuestionModal(contentDiv, leftRightMargin) {
     var questionDiv = document.createElement("div");
     questionDiv.className = "question";
@@ -271,14 +405,6 @@ function createQuestionModal(contentDiv, leftRightMargin) {
     questionDiv.textContent = ""
     questionDiv.style.padding = "5px";
     return questionDiv;
-}
-
-function createAnswerModal(contentDiv, leftRightMargin) {
-    var answerDiv = document.createElement("div");
-    answerDiv.className = "answer";
-    answerDiv.id = "answer";
-    answerDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
-    return answerDiv;
 }
 
 function showModal() {
@@ -314,11 +440,13 @@ function showModal() {
     // Create question modal to display request
     const questionDiv = createQuestionModal(contentDiv, leftRightMargin)
     modalWrapperDiv.appendChild(questionDiv)
-
     // Create answer
     const answerDiv = createAnswerModal(contentDiv, leftRightMargin);
     modalWrapperDiv.appendChild(answerDiv);
 
+    //Creaft draft options
+    const draftsDiv = createDrafts(contentDiv, leftRightMargin);
+    modalWrapperDiv.appendChild(draftsDiv)
     // Create action bar
     const actionsDiv = createActionBar(contentDiv, leftRightMargin); 
     modalWrapperDiv.appendChild(actionsDiv);
@@ -343,6 +471,8 @@ function replaceSelectedText(newText) {
         }
         return false;
     });
+    console.log("replacing", nodes)
+
     // Replace content of first node with new text, and remove all subsequent nodes
     if (nodes.length > 0) {
         nodes[0].innerHTML = newText;
@@ -404,6 +534,7 @@ function updateAnswer(answer) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.showModal) {
+        console.log("Showing model");
         showModal();
     }
 
@@ -411,8 +542,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log("INCOMING MESSAGE");
     }
 
+    if(request.draftMessage){
+        console.log("got here:", request.draftMessage);
+        const draft1 = document.getElementById("draft1");
+        draft1.textContent = request.draftMessage;
+    }
+
     if (request.message) {
-        console.log("content got message", request.message);
+        console.log("content got message: ", request.message);
         updateAnswer(request.message);
     }
 
