@@ -26,68 +26,17 @@ const generateProgressCallback = (_step: number, message: string) => {
     chrome.runtime.sendMessage({ answer: message });
 };
 
-
-// Set reponse callback for chat module
-const generateDraftProgressCallback = (_step: number, message: string) => {
-    // send the answer back to the content script
-    console.log("background msg:", message);
-    console.log("step:", _step);
-
-    // Send message to content script
-    const query = { active: true, currentWindow: true };
-    chrome.tabs.query(query, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {
-            draftMessage: "Draft1: "+ message
-        });
-    });
-
-    // Send message to popup script
-    chrome.runtime.sendMessage({ answer: message });
-};
-
 chrome.runtime.onMessage.addListener(async function (request) {
     // Request is coming through modal
     if (request.source == "modal") {
         handleModal(request);
     } else if (request.source == "popup") {
         handlePopup(request);
-    }else if(request.source == "draft"){
-        handleDraft(request)
     } else {
         console.log("Unidentified source");
     }
 });
 
-async function handleDraft(request) {
-    const inputText = request.input;
-    const selectedText = request.selection;
-    console.log("Input:", inputText);
-    console.log("Selection:", selectedText);
-    var input;
-    if (selectedText.length > 0) {
-        input = `${inputText}. ${selectedText}`;
-    } else {
-        input = inputText;
-    }
-    // const query = { active: true, currentWindow: true };
-    // chrome.tabs.query(query, (tabs) => {
-    //     chrome.tabs.sendMessage(tabs[0].id, {
-    //         incomingMessage: true
-    //     });
-    // });
-    // //passing input into chat module --> communicating to llm
-    // //call 3 times (await response)
-    // const response = await cm.generate(input, generateProgressCallback);
-    
-    const draftQuery = { active: true, currentWindow: true };
-    chrome.tabs.query(draftQuery, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {
-            incomingMessage: true
-        });
-    });
-    const draftResponse = await cm.generate(input, generateDraftProgressCallback);
-    console.log("Response:", draftResponse);
-}
 
 async function handleModal(request) {
     const inputText = request.input;
@@ -106,17 +55,8 @@ async function handleModal(request) {
             incomingMessage: true
         });
     });
-    //passing input into chat module --> communicating to llm
-    //call 3 times (await response)
+
     const response = await cm.generate(input, generateProgressCallback);
-    
-    // const draftQuery = { active: true, currentWindow: true };
-    // chrome.tabs.query(query, (tabs) => {
-    //     chrome.tabs.sendMessage(tabs[0].id, {
-    //         incomingMessage: true
-    //     });
-    // });
-    // const draft = await cm.generate(input, generateDraftProgressCallback);
     console.log("Response:", response);
 }
 

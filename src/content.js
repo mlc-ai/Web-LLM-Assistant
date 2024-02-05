@@ -68,10 +68,6 @@ function handleSubmit(regen) {
         questionDiv.textContent = "You: "+input.value
         questionDiv.value = input.value
 
-        //Show drafts
-         const draftsDiv = document.getElementById("drafts")
-         draftsDiv.style.display = "flex";
-
         //adjust height to include question and action bar
         const modalWrapperDiv = document.getElementById("modalWrapper");
         modalWrapperDiv.style.height = "auto";
@@ -97,13 +93,6 @@ function handleSubmit(regen) {
         input: query,
         selection: selectedText,
         source: "modal"
-    });
-
-
-    chrome.runtime.sendMessage({
-        input: query,
-        selection: selectedText,
-        source: "draft"
     });
 
     if (inlineMode) {
@@ -168,22 +157,7 @@ function saveFeedback(good){
     });
     let feedbackText = prompt("Do you have further feedback?");
     console.log("feedback", feedbackText);
-
-
-
-    // require('mongodb');
-    // const uri = "mongodb+srv://abayyapu:FNCFPOPPfRqYri4N@cluster0.jgymg3g.mongodb.net/?retryWrites=true&w=majority";
-
-    // // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-    // const client = new MongoClient(uri, {
-    // serverApi: {
-    //     version: ServerApiVersion.v1,
-    //     strict: true,
-    //     deprecationErrors: true,
-    // }
-    // });
-
-
+    //TODO: write to a private or public repo with the feedback
 }
 
 
@@ -262,7 +236,6 @@ function createActionBar(contentDiv, leftRightMargin) {
 
     //Create regenerate answer button
     var regenerate = document.createElement('button')
-    // regenerate.textContent = "Regenerate";
     regenerate.style.fontSize = "10px";
     regenerate.style.backgroundColor = "transparent";
     regenerate.style.border = "none";
@@ -286,51 +259,6 @@ function createActionBar(contentDiv, leftRightMargin) {
 
     
     return actionsDiv;
-}
-
-function createDrafts(contentDiv, leftRightMargin){
-    var draftsDiv = document.createElement("div");
-    draftsDiv.className = "drafts";
-    draftsDiv.id = "drafts";
-    draftsDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
-    draftsDiv.style.height = "auto";
-    draftsDiv.style.display = "none";
-    draftsDiv.style.flexDirection = "row-reverse";
-
-    // draftsDiv.textContent = "Drafts"
-    var draft2 = document.createElement('button');
-    draft2.textContent = "Draft 2";
-    draft2.style.fontSize = "10px";
-    draft2.style.backgroundColor = "transparent";
-    draft2.style.border = "solid";
-    draft2.style.marginRight = "10px";
-    draft2.style.width = "50%"
-    draft2.style.color = "rgba(255, 255, 255, 0.6)";
-
-    draft2.addEventListener("click", () => {
-        handleSubmit(true)
-    });
-
-    var draft1 = document.createElement('button');
-    draft1.id = "draft1"
-    draft1.class = "draft1"
-    draft1.textContent = "Draft 1";
-    draft1.style.fontSize = "10px";
-    draft1.style.backgroundColor = "transparent";
-    draft1.style.border = "solid";
-    draft1.style.marginRight = "10px";
-    draft1.style.width = "50%"
-    draft1.style.height = "auto"
-    draft1.style.color = "rgba(255, 255, 255, 0.6)";
-
-    draft1.addEventListener("click", () => {
-        const answerDiv = document.getElementById("answer");
-        answerDiv.textContent = draft1.textContent;
-    });
-    draftsDiv.appendChild(draft2)
-    draftsDiv.appendChild(draft1)
-
-    return draftsDiv
 }
 
 function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
@@ -444,9 +372,6 @@ function showModal() {
     const answerDiv = createAnswerModal(contentDiv, leftRightMargin);
     modalWrapperDiv.appendChild(answerDiv);
 
-    //Creaft draft options
-    const draftsDiv = createDrafts(contentDiv, leftRightMargin);
-    modalWrapperDiv.appendChild(draftsDiv)
     // Create action bar
     const actionsDiv = createActionBar(contentDiv, leftRightMargin); 
     modalWrapperDiv.appendChild(actionsDiv);
@@ -540,12 +465,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.incomingMessage) {
         console.log("INCOMING MESSAGE");
-    }
-
-    if(request.draftMessage){
-        console.log("got here:", request.draftMessage);
-        const draft1 = document.getElementById("draft1");
-        draft1.textContent = request.draftMessage;
     }
 
     if (request.message) {
