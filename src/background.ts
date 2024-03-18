@@ -26,7 +26,6 @@ const generateProgressCallback = (_step: number, message: string) => {
     chrome.runtime.sendMessage({ answer: message });
 };
 
-
 chrome.runtime.onMessage.addListener(async function (request) {
     // Request is coming through modal
     if (request.source == "modal") {
@@ -37,6 +36,7 @@ chrome.runtime.onMessage.addListener(async function (request) {
         console.log("Unidentified source");
     }
 });
+
 
 async function handleModal(request) {
     const inputText = request.input;
@@ -55,6 +55,7 @@ async function handleModal(request) {
             incomingMessage: true
         });
     });
+
     const response = await cm.generate(input, generateProgressCallback);
     console.log("Response:", response);
 }

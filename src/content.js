@@ -4,6 +4,7 @@ var lastInlineNode = null;
 var inlineAnswerNodes = Array();
 
 var inlineMode;
+//retrieve browser settings and determine inline mode
 chrome.storage.sync.get(
     { inlineMode: false },
     (items) => {
@@ -12,6 +13,14 @@ chrome.storage.sync.get(
     }
 );
 
+var customization;
+chrome.storage.sync.get(
+    {customization: 0},
+    (items) => {
+        customization = items.customization
+        console.log("Customization set to ", customization)
+    }
+)
 
 function hideModalIfVisible() {
     if (modalVisible) {
@@ -21,9 +30,21 @@ function hideModalIfVisible() {
     }
 }
 
-function handleSubmit() {
-    const input = document.getElementById("modalInput");
 
+function handleSubmit(regen) {
+
+    //Input depends on whether the question is new or is being regenerated
+    let inputTemp = document.getElementById("modalInput");
+
+    //If question is regenerating, get question
+    if (regen){
+        //change inputTemp to the question
+        inputTemp = document.getElementById("question")
+        console.log("regen input", inputTemp.value)
+    }
+
+    const input = inputTemp
+    
     if (inlineMode) {
         lastInlineNode = selectInlineNode();
         const beginNode = document.createElement("div");
@@ -46,6 +67,7 @@ function handleSubmit() {
         questionDiv.style.display = "flex"
         questionDiv.textContent = "You: "+input.value
         questionDiv.value = input.value
+
         //adjust height to include question and action bar
         const modalWrapperDiv = document.getElementById("modalWrapper");
         modalWrapperDiv.style.height = "auto";
@@ -57,9 +79,18 @@ function handleSubmit() {
     thumbsDown = document.getElementById("thumbsDownButtonImg")
     thumbsDown.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
 
+    //adjust the query depending on the prompt customization
+    var query = "";
+    if (customization == 1){
+        query += "Respond creatively to the following: ";
+    }else if (customization == 2){
+        query += "Respond with precision to the following: "
+    }
 
+    query += input.value
+   
     chrome.runtime.sendMessage({
-        input: input.value,
+        input: query,
         selection: selectedText,
         source: "modal"
     });
@@ -77,7 +108,7 @@ document.addEventListener("keydown", function(event) {
     if (modalVisible) {
         const input = document.getElementById("modalInput");
         if (key == "Enter" && input === document.activeElement) {
-            handleSubmit();
+            handleSubmit(false);
         }
     }
 });
@@ -90,7 +121,7 @@ function createModalWrapper(contentDiv, boundingRect, topMargin, leftRightMargin
     modalWrapperDiv.style.top = boundingRect.bottom + topMargin + "px";
     modalWrapperDiv.style.left = boundingRect.left + leftRightMargin + "px";
     modalWrapperDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
-    modalWrapperDiv.style.height = "40px";
+    modalWrapperDiv.style.height = "45px";
     modalWrapperDiv.style.display = "flex";
     modalWrapperDiv.style.position = "absolute";
     modalWrapperDiv.style.flexDirection = "column";
@@ -98,6 +129,8 @@ function createModalWrapper(contentDiv, boundingRect, topMargin, leftRightMargin
 }
 
 function saveFeedback(good){
+    console.log("in save feedback")
+
     //Determine what data should be written
     let question = document.getElementById("question").value
     let answer = document.getElementById("answer").textContent
@@ -123,8 +156,10 @@ function saveFeedback(good){
     }
     });
     let feedbackText = prompt("Do you have further feedback?");
-    console.log("The following feedback has been recieved: ", feedbackText);
+    console.log("feedback", feedbackText);
+    //TODO: write to a private or public repo with the feedback
 }
+
 
 function createFeedbackButtons(){
     //make thumbs up button
@@ -184,26 +219,45 @@ function createActionBar(contentDiv, leftRightMargin) {
     actionsDiv.style.display = "none";
     actionsDiv.style.flexDirection = "row-reverse";
 
+    //Create replace buttone
     var replaceAction = document.createElement('button');
-    replaceAction.textContent = "replace";
+    replaceAction.textContent = "Replace";
     replaceAction.style.fontSize = "10px";
     replaceAction.style.backgroundColor = "transparent";
     replaceAction.style.border = "none";
     replaceAction.style.marginRight = "10px";
     replaceAction.style.color = "rgba(255, 255, 255, 0.6)";
-
     replaceAction.addEventListener("click", () => {
         // Get output text
         const outputText = document.getElementById("answer").innerHTML;
         replaceSelectedText(outputText)
     });
-
     actionsDiv.appendChild(replaceAction);
+
+    //Create regenerate answer button
+    var regenerate = document.createElement('button')
+    regenerate.style.fontSize = "10px";
+    regenerate.style.backgroundColor = "transparent";
+    regenerate.style.border = "none";
+    regenerate.style.marginRight = "5px";
+    regenerate.style.color = "rgba(255, 255, 255, 0.6)";
+    //Create image for regenerate button
+    var regenerateImg = new Image(15, 15);
+    regenerateImg.src = chrome.runtime.getURL("icons/redo.png");
+    regenerate.append(regenerateImg)
+
+    regenerate.addEventListener("click", () => {
+        handleSubmit(true)
+    });
+    actionsDiv.appendChild(regenerate);
+
+
     //Create feedback buttons
     const [thumbsUp, thumbsDown] = createFeedbackButtons()
     actionsDiv.appendChild(thumbsDown);
     actionsDiv.appendChild(thumbsUp);
 
+    
     return actionsDiv;
 }
 
@@ -259,6 +313,14 @@ function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
     return modalDiv;
 }
 
+function createAnswerModal(contentDiv, leftRightMargin) {
+    var answerDiv = document.createElement("div");
+    answerDiv.className = "answer";
+    answerDiv.id = "answer";
+    answerDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
+    return answerDiv;
+}
+
 function createQuestionModal(contentDiv, leftRightMargin) {
     var questionDiv = document.createElement("div");
     questionDiv.className = "question";
@@ -271,14 +333,6 @@ function createQuestionModal(contentDiv, leftRightMargin) {
     questionDiv.textContent = ""
     questionDiv.style.padding = "5px";
     return questionDiv;
-}
-
-function createAnswerModal(contentDiv, leftRightMargin) {
-    var answerDiv = document.createElement("div");
-    answerDiv.className = "answer";
-    answerDiv.id = "answer";
-    answerDiv.style.width = contentDiv.offsetWidth - 2*leftRightMargin + "px";
-    return answerDiv;
 }
 
 function showModal() {
@@ -314,7 +368,6 @@ function showModal() {
     // Create question modal to display request
     const questionDiv = createQuestionModal(contentDiv, leftRightMargin)
     modalWrapperDiv.appendChild(questionDiv)
-
     // Create answer
     const answerDiv = createAnswerModal(contentDiv, leftRightMargin);
     modalWrapperDiv.appendChild(answerDiv);
@@ -343,6 +396,8 @@ function replaceSelectedText(newText) {
         }
         return false;
     });
+    console.log("replacing", nodes)
+
     // Replace content of first node with new text, and remove all subsequent nodes
     if (nodes.length > 0) {
         nodes[0].innerHTML = newText;
@@ -404,6 +459,7 @@ function updateAnswer(answer) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.showModal) {
+        console.log("Showing model");
         showModal();
     }
 
@@ -412,7 +468,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.message) {
-        console.log("content got message", request.message);
+        console.log("content got message: ", request.message);
         updateAnswer(request.message);
     }
 
