@@ -1,9 +1,22 @@
+import * as hosts from "./hosts.js"
 var selectedText = "";
 var modalVisible = false;
 var lastInlineNode = null;
 var inlineAnswerNodes = Array();
-
 var inlineMode;
+var customization;
+
+const appConfig = {
+    model_list: [
+        {
+            "model_url": "https://huggingface.co/mlc-ai/Mistral-7B-Instruct-v0.2-q4f16_1-MLC/resolve/main/",
+            "local_id": "Mistral-7B-Instruct-v0.2-q4f16_1",
+            "model_lib_url": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/Mistral-7B-Instruct-v0.2/Mistral-7B-Instruct-v0.2-q4f16_1-sw4k_cs1k-webgpu.wasm",
+            "required_features": ["shader-f16"],
+        }
+    ]
+}
+
 //retrieve browser settings and determine inline mode
 chrome.storage.sync.get(
     { inlineMode: false },
@@ -13,7 +26,7 @@ chrome.storage.sync.get(
     }
 );
 
-var customization;
+//retrieve browser settings and determine customization
 chrome.storage.sync.get(
     {customization: 0},
     (items) => {
@@ -21,6 +34,10 @@ chrome.storage.sync.get(
         console.log("Customization set to ", customization)
     }
 )
+
+chrome.runtime.sendMessage({ reload: appConfig });
+console.log("Requesting model reload");
+
 
 function hideModalIfVisible() {
     if (modalVisible) {
@@ -88,7 +105,7 @@ function handleSubmit(regen) {
     }
 
     query += input.value
-   
+
     chrome.runtime.sendMessage({
         input: query,
         selection: selectedText,
@@ -338,28 +355,35 @@ function createQuestionModal(contentDiv, leftRightMargin) {
 function showModal() {
 
     // Params
-    const leftRightMargin = 15;
+    var leftRightMargin = 15;
     const topMargin = 5;
-
+    var tempContentDiv;
+    var overleaf = false;
     hideModalIfVisible();
 
     const selection = window.getSelection();
+    console.log("selection is ", selection)
     var boundingRect;
     if (selection.type == "Range") {
         // Selected a bunch of text, show below selection
         boundingRect = selection.getRangeAt(0).getBoundingClientRect();
         selectedText = window.getSelection().toString();
         console.log("Selected text:", selectedText);
+        tempContentDiv = document.getElementsByClassName("cm-content")[0];
+
     } else {
         // No selection, show below active line
-        const activeLine = document.getElementsByClassName("cm-activeLine")[0];
-        boundingRect = activeLine.getBoundingClientRect();
+        // docs-material companion-enabled for docs
         console.log("No text selection");
-        console.log(window.getSelection());
+        host = hosts.findHost()
+        // console.log(host)
+        boundingRect = host.boundingRect.getBoundingClientRect()
+        leftRightMargin = host.leftRightMargin
+        tempContentDiv = host.tempContentDiv
     }
+    
     console.log("bounds", boundingRect);
-
-    const contentDiv = document.getElementsByClassName("cm-content")[0];
+    const contentDiv = tempContentDiv
     
     // Create and add modal wrapper to DOM
     const modalWrapperDiv = createModalWrapper(contentDiv, boundingRect, topMargin, leftRightMargin)
