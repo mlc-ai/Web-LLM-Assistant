@@ -435,19 +435,12 @@ function showModal() {
 }
 
 function replaceSelectedText(replacementText) {
-  let sel, range;
-  if (window.getSelection) {
-    sel = window.getSelection();
-    logger.info("Replacing selection", sel);
-    if (sel.rangeCount) {
-      range = sel.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(document.createTextNode(replacementText));
+  // Overleaf
+  Array.from(document.getElementsByClassName("cm-line")).forEach((el) => {
+    if (el.textContent.includes(selectedText)) {
+      el.textContent = el.textContent.replace(selectedText, replacementText);
     }
-  } else if (document.selection && document.selection.createRange) {
-    range = document.selection.createRange();
-    range.text = replacementText;
-  }
+  });
 }
 
 function selectInlineNode() {
