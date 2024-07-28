@@ -1,21 +1,16 @@
 .modalWrapper {
-  /* height: 70px; */
-  display: inline-block;
-  background-color: blue;
+  width: 240px;
   border-radius: 10px;
   background-color: rgba(75, 83, 99, 0.9);
-  justify-content: center;
-  /* position: relative; */
+  overflow: hidden;
 }
 
 .modal {
   height: 40px;
-  /* border-radius: 10px; */
-  /* background-color: rgba(75, 83, 99, 0.9); */
-  /* position: absolute; */
   display: flex;
   align-content: flex-start;
   align-items: center;
+  overflow: hidden;
 }
 
 .modalInput {
@@ -26,6 +21,7 @@
   padding-left: 10px;
   color: rgba(255, 255, 255, 0.8);
   font-size: 13px;
+  overflow: hidden;
 }
 
 .modalInput::placeholder {
@@ -42,16 +38,12 @@ input:focus {
 .answer {
   font-size: 13px;
   color: white;
-  /* padding: 5px; */
-  overflow-y: scroll;
-  /* max-height: 250px; */
+  overflow: hidden;
 }
 
 .question {
   font-size: 13px;
   font-weight: 900;
   color: white;
-  /* padding: 5px; */
-  overflow-y: scroll;
-  /* max-height: 250px; */
+  overflow: hidden;
 }

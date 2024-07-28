@@ -1,12 +1,12 @@
 import * as hosts from "./hosts.js";
 import { ExtensionServiceWorkerMLCEngine } from "@mlc-ai/web-llm";
 
-var selectedText = "";
-var modalVisible = false;
-var lastInlineNode = null;
-var inlineAnswerNodes = Array();
-var inlineMode;
-var customization;
+let selectedText = "";
+let modalVisible = false;
+let lastInlineNode = null;
+let inlineAnswerNodes = Array();
+let inlineMode;
+let customization;
 
 const logger = {
   info: (...args) => {
@@ -91,14 +91,8 @@ async function handleSubmit(regen) {
     modalWrapperDiv.style.height = "auto";
   }
 
-  //reset feedback buttons
-  thumbsUp = document.getElementById("thumbsUpButtonImg");
-  thumbsUp.src = chrome.runtime.getURL("icons/thumbs-up-lined.png");
-  thumbsDown = document.getElementById("thumbsDownButtonImg");
-  thumbsDown.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
-
   //adjust the query depending on the prompt customization
-  var query = "";
+  let query = "";
   if (customization == 1) {
     query += "Respond creatively to the following: ";
   } else if (customization == 2) {
@@ -152,7 +146,7 @@ function createModalWrapper(
   topMargin,
   leftRightMargin,
 ) {
-  var modalWrapperDiv = document.createElement("div");
+  let modalWrapperDiv = document.createElement("div");
   modalWrapperDiv.className = "modalWrapper";
   modalWrapperDiv.id = "modalWrapper";
   modalWrapperDiv.style.top = boundingRect.bottom + topMargin + "px";
@@ -160,104 +154,20 @@ function createModalWrapper(
   modalWrapperDiv.style.width =
     contentDiv.offsetWidth - 2 * leftRightMargin + "px";
   modalWrapperDiv.style.height = "45px";
-  modalWrapperDiv.style.display = "flex";
   modalWrapperDiv.style.position = "absolute";
-  modalWrapperDiv.style.flexDirection = "column";
   return modalWrapperDiv;
 }
 
-function saveFeedback(good) {
-  logger.info("in save feedback");
-
-  //Determine what data should be written
-  let question = document.getElementById("question").value;
-  let answer = document.getElementById("answer").textContent;
-  const data = "Question: " + question + "\n Answer: " + answer + "\n\n";
-
-  //Get the file
-  let fileTemp = "BadResponse.txt";
-  if (good) {
-    //write to good answer file
-    fileTemp = "GoodResponse.txt";
-  }
-  const file = fileTemp;
-
-  //Append the data (Creates file if it does not exist)
-  const fs = require("browserify-fs");
-
-  // Append data to a file
-  fs.appendFile(file, data, (err) => {
-    if (err) {
-      logger.info(err);
-    } else {
-      logger.info("Data appended successfully!");
-    }
-  });
-  let feedbackText = prompt("Do you have further feedback?");
-  logger.info("feedback", feedbackText);
-  //TODO: write to a private or public repo with the feedback
-}
-
-function createFeedbackButtons() {
-  //make thumbs up button
-  var thumbsUp = document.createElement("button");
-  // thumbsUp.textContent = "Good Answer";
-  thumbsUp.style.fontSize = "10px";
-  thumbsUp.style.backgroundColor = "transparent";
-  thumbsUp.style.border = "none";
-  thumbsUp.style.marginRight = "5px";
-  thumbsUp.style.color = "rgba(255, 255, 255, 0.6)";
-  //make button a lined thumbs up image
-  var ThumbsUpImg = new Image(15, 15);
-  ThumbsUpImg.id = "thumbsUpButtonImg";
-  ThumbsUpImg.src = chrome.runtime.getURL("icons/thumbs-up-lined.png");
-  thumbsUp.append(ThumbsUpImg);
-
-  //make thumbs down button
-  var thumbsDown = document.createElement("button");
-  // thumbsDown.textContent = "Bad Answer";
-  thumbsDown.style.fontSize = "10px";
-  thumbsDown.style.backgroundColor = "transparent";
-  thumbsDown.style.border = "none";
-  thumbsDown.style.marginRight = "5px";
-  thumbsDown.style.color = "rgba(255, 255, 255, 0.6)";
-  //make button a lined thumbs down image
-  var ThumbsDownImg = new Image(15, 15);
-  ThumbsDownImg.id = "thumbsDownButtonImg";
-  ThumbsDownImg.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
-  thumbsDown.append(ThumbsDownImg);
-
-  //add clicking features
-  thumbsUp.addEventListener("click", () => {
-    logger.info("Saving as good answer");
-    //update image
-    ThumbsUpImg.src = chrome.runtime.getURL("icons/thumbs-up-filled.png");
-    ThumbsDownImg.src = chrome.runtime.getURL("icons/thumbs-down-lined.png");
-    saveFeedback(true);
-  });
-
-  thumbsDown.addEventListener("click", () => {
-    logger.info("Saving as bad answer");
-    //update image
-    ThumbsUpImg.src = chrome.runtime.getURL("icons/thumbs-up-lined.png");
-    ThumbsDownImg.src = chrome.runtime.getURL("icons/thumbs-down-filled.png");
-    saveFeedback(false);
-  });
-
-  return [thumbsUp, thumbsDown];
-}
-
 function createActionBar(contentDiv, leftRightMargin) {
-  var actionsDiv = document.createElement("div");
+  let actionsDiv = document.createElement("div");
   actionsDiv.className = "actions";
   actionsDiv.id = "actions";
-  actionsDiv.style.width = contentDiv.offsetWidth - 2 * leftRightMargin + "px";
   actionsDiv.style.height = "20px";
   actionsDiv.style.display = "none";
   actionsDiv.style.flexDirection = "row-reverse";
 
   // Create replace button
-  var replaceAction = document.createElement("button");
+  let replaceAction = document.createElement("button");
   replaceAction.textContent = "Replace";
   replaceAction.style.fontSize = "10px";
   replaceAction.style.backgroundColor = "transparent";
@@ -272,14 +182,14 @@ function createActionBar(contentDiv, leftRightMargin) {
   actionsDiv.appendChild(replaceAction);
 
   //Create regenerate answer button
-  var regenerate = document.createElement("button");
+  let regenerate = document.createElement("button");
   regenerate.style.fontSize = "10px";
   regenerate.style.backgroundColor = "transparent";
   regenerate.style.border = "none";
   regenerate.style.marginRight = "5px";
   regenerate.style.color = "rgba(255, 255, 255, 0.6)";
   //Create image for regenerate button
-  var regenerateImg = new Image(15, 15);
+  let regenerateImg = new Image(15, 15);
   regenerateImg.src = chrome.runtime.getURL("icons/redo.png");
   regenerate.append(regenerateImg);
 
@@ -288,25 +198,12 @@ function createActionBar(contentDiv, leftRightMargin) {
   });
   actionsDiv.appendChild(regenerate);
 
-  //Create feedback buttons
-  const [thumbsUp, thumbsDown] = createFeedbackButtons();
-  actionsDiv.appendChild(thumbsDown);
-  actionsDiv.appendChild(thumbsUp);
-
   return actionsDiv;
 }
 
 function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
   // Create and add modal to modal wrapper
-  var modalDiv = document.createElement("div");
-  modalDiv.className = "modal";
-  modalDiv.style.height = "40px";
-  modalDiv.style.width = contentDiv.offsetWidth - 2 * leftRightMargin + "px";
-  modalDiv.style.display = "flex";
-  modalDiv.style.position = "relative";
-
-  // Create and add modal to modal wrapper
-  var modalDiv = document.createElement("div");
+  let modalDiv = document.createElement("div");
   modalDiv.className = "modal";
   modalDiv.style.height = "40px";
   modalDiv.style.width = contentDiv.offsetWidth - 2 * leftRightMargin + "px";
@@ -322,6 +219,7 @@ function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
   iconDiv.style.alignItems = "center";
   iconDiv.style.justifyContent = "center";
   iconDiv.style.marginLeft = "3px";
+
   const icon = document.createElement("img");
   icon.style.height = "20px";
   icon.style.width = "20px";
@@ -348,20 +246,18 @@ function createInputModal(contentDiv, modalWrapperDiv, leftRightMargin) {
 }
 
 function createAnswerModal(contentDiv, leftRightMargin) {
-  var answerDiv = document.createElement("div");
+  let answerDiv = document.createElement("div");
   answerDiv.className = "answer";
   answerDiv.id = "answer";
-  answerDiv.style.width = contentDiv.offsetWidth - 2 * leftRightMargin + "px";
   return answerDiv;
 }
 
 function createQuestionModal(contentDiv, leftRightMargin) {
-  var questionDiv = document.createElement("div");
+  let questionDiv = document.createElement("div");
   questionDiv.className = "question";
   questionDiv.id = "question";
   questionDiv.placeholder = "This is the question.";
 
-  questionDiv.style.width = contentDiv.offsetWidth - 2 * leftRightMargin + "px";
   questionDiv.style.height = "auto";
   questionDiv.style.display = "none";
   questionDiv.textContent = "";
@@ -371,15 +267,14 @@ function createQuestionModal(contentDiv, leftRightMargin) {
 
 function showModal() {
   // Params
-  var leftRightMargin = 15;
+  let leftRightMargin = 15;
+  let tempContentDiv;
   const topMargin = 5;
-  var tempContentDiv;
-  var overleaf = false;
   hideModalIfVisible();
 
   const selection = window.getSelection();
   logger.info("selection is ", selection);
-  var boundingRect;
+  let boundingRect;
   if (selection.type === "Range" || selection.type === "Caret") {
     // Selected a bunch of text, show below selection
     boundingRect = selection.getRangeAt(0).getBoundingClientRect();
