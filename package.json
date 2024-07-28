@@ -4,7 +4,8 @@
   "description": "",
   "private": true,
   "scripts": {
-    "build": "parcel build src/manifest.json --config @parcel/config-webextension"
+    "build": "parcel build src/manifest.json --config @parcel/config-webextension",
+    "format": "prettier --write ."
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +20,7 @@
     "os-browserify": "^0.3.0",
     "parcel": "^2.10.3",
     "path-browserify": "^1.0.1",
+    "prettier": "^3.3.3",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",

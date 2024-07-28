@@ -1,34 +1,31 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+  <head>
+    <link rel="stylesheet" href="options.css" />
+  </head>
 
-<head>
-  <link rel="stylesheet" href="options.css">
-</head>
-
-<body>
-  <div class="container">
-    <div class="inlineOption">
+  <body>
+    <div class="container">
+      <div class="inlineOption">
         Inline generation
         <label class="switch">
-            <input type="checkbox" id="inline">
-            <span class="slider"></span>
+          <input type="checkbox" id="inline" />
+          <span class="slider"></span>
         </label>
+      </div>
+      <div class="promptCustomizationOption">
+        <form action="#">
+          Response Type
+          <label class="promptCustom">
+            <select id="promptCustomization" onchange="this.form.submit();">
+              <option value="0">Default</option>
+              <option value="1">Creative</option>
+              <option value="2">Precise</option>
+            </select>
+          </label>
+        </form>
+      </div>
     </div>
-    <div class="promptCustomizationOption">
-      <form action="#">
-        Response Type
-        <label class="promptCustom">
-          <select id="promptCustomization" onchange="this.form.submit();">
-            <option value=0>Default</option>
-            <option value=1>Creative</option>
-            <option value=2>Precise</option>
-          </select>
-      </label>
-      </form>
-    </div>
-  </div>
-  <script src="options.js"></script>
-
-</body>
-
+    <script src="options.js"></script>
+  </body>
 </html>
