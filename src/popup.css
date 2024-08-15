@@ -1,0 +1,104 @@
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+html {
+  font-family: Arial, sans-serif;
+  position: relative;
+  font-size: 16px;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  min-width: 360px;
+  background-color: rgba(75, 83, 99, 0.9);
+}
+.modal {
+  align-items: center;
+  display: flex;
+  position: relative;
+  flex-direction: column;
+}
+.input-container {
+  display: flex;
+  gap: 10px;
+  height: 40px;
+  margin: 10px 0;
+  width: calc(100% - 20px);
+  position: relative;
+  align-items: center;
+}
+.icon-container {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 3px;
+}
+.icon {
+  height: 20px;
+  width: 20px;
+}
+.input {
+  flex-grow: 1;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+.modalInput {
+  width: 100%;
+  padding: 5px;
+}
+.actions {
+  height: 20px;
+  display: flex;
+  flex-direction: row-reverse;
+  margin-top: 5px;
+}
+.action-button {
+  font-size: 10px;
+  background-color: transparent;
+  border: none;
+  margin-right: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+.regenerate-img {
+  width: 15px;
+  height: 15px;
+}
+.answer,
+.question {
+  padding: 1rem;
+  color: white;
+  font-size: 1rem;
+}
+.question {
+  font-weight: bold;
+}
+.hidden {
+  display: none;
+}
+.input-container .submit {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  background-color: rgba(75, 83, 99, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.input-container .submit:hover {
+  background-color: rgba(75, 83, 99, 0.4);
+}
+.input-container .submit svg {
+  width: 1rem;
+  height: 1rem;
+  fill: white;
+}

@@ -30,6 +30,7 @@
     "util": "^0.12.5"
   },
   "dependencies": {
+    "@mlc-ai/web-agent-interface": "file:../web-agent-interface/lib",
     "@mlc-ai/web-llm": "^0.2.19",
     "browserify-fs": "^1.0.0",
     "mongodb": "^6.3.0"

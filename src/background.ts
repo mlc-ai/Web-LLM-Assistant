@@ -30,23 +30,3 @@ chrome.runtime.onConnect.addListener(function (port) {
   }
   port.onMessage.addListener(webllmHandler.onmessage.bind(webllmHandler));
 });
-
-chrome.commands.onCommand.addListener((command) => {
-  switch (command) {
-    case "showModal":
-      showModal();
-      break;
-    default:
-      console.log(`Command ${command} not found`);
-  }
-});
-
-function showModal() {
-  const query = { active: true, currentWindow: true };
-  chrome.tabs.query(query, (tabs) => {
-    tabs[0]?.id &&
-      chrome.tabs.sendMessage(tabs[0].id, {
-        showModal: true,
-      });
-  });
-}

@@ -5,15 +5,18 @@
   overflow: hidden;
 }
 
-.modal {
+#MlcAssistantModelWrapper .modal {
   height: 40px;
   display: flex;
   align-content: flex-start;
   align-items: center;
+}
+
+#MlcAssistantModelWrapper .modal {
   overflow: hidden;
 }
 
-.modalInput {
+#MlcAssistantModelWrapper .modalInput {
   background: transparent;
   border: none;
   width: 100%;
@@ -24,24 +27,24 @@
   overflow: hidden;
 }
 
-.modalInput::placeholder {
+#MlcAssistantModelWrapper .modalInput::placeholder {
   color: white;
   opacity: 0.3;
   font-size: 13px;
 }
 
-textarea:focus,
-input:focus {
+#MlcAssistantModelWrapper textarea:focus,
+#MlcAssistantModelWrapper input:focus {
   outline: none;
 }
 
-.answer {
+#MlcAssistantModelWrapper .answer {
   font-size: 13px;
   color: white;
   overflow: hidden;
 }
 
-.question {
+#MlcAssistantModelWrapper .question {
   font-size: 13px;
   font-weight: 900;
   color: white;

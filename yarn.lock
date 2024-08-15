@@ -75,6 +75,9 @@
     "@lezer/lr" "^1.0.0"
     json5 "^2.2.1"
 
+"@mlc-ai/web-agent-interface@file:../web-agent-interface/lib":
+  version "0.0.0"
+
 "@mlc-ai/web-llm@^0.2.19":
   version "0.2.46"
   resolved "https://registry.yarnpkg.com/@mlc-ai/web-llm/-/web-llm-0.2.46.tgz#bf32dab0710dba4967d49b2810b39184272d8840"
