@@ -5,7 +5,6 @@ const overleaf = new OverleafPage();
 const gdocs = new GoogleDocPage();
 
 let selectedText = "";
-let inlineMode;
 let customization;
 
 const logger = {
@@ -88,10 +87,6 @@ async function handleSubmit(regen) {
       curMessage += curDelta;
     }
     updateAnswer(curMessage);
-  }
-
-  if (inlineMode) {
-    hideModalIfVisible();
   }
 }
 
