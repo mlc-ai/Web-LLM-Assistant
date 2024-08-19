@@ -79,7 +79,7 @@ async function handleSubmit(regen) {
   }
 
   query += input.value;
-  logger.info("query", query);
+  logger.info(query);
 
   let curMessage = "";
   createAnswerEntry();
@@ -103,7 +103,7 @@ async function handleSubmit(regen) {
   }
 
   const finalMessage = await engine.getMessage();
-  replaceAnswer(finalMessage);
+  updateAnswer(finalMessage);
 }
 
 function createAnswerEntry() {
@@ -117,44 +117,89 @@ function createAnswerEntry() {
   modalInput.value = "";
 }
 
-function updateAnswer(answer) {
-  const answerDiv = document.getElementById("answer").lastElementChild;
-  answerDiv.textContent = answer;
+function updateAnswer(response) {
+  const answerDiv = document.getElementById("answer");
+  answerDiv.innerHTML = "";
+  if (response.includes("<tool_call>") && response.includes("</tool_call>")) {
+    const answer1 = response.substring(0, response.indexOf("<tool_call>"));
+    const functionCall = response.substring(
+      response.indexOf("<tool_call>"),
+      response.indexOf("</tool_call>") + "</tool_call>".length,
+    );
+    const answer2 = response.substring(
+      response.indexOf("</tool_call>") + "</tool_call>".length,
+    );
+
+    if (answer1) {
+      const answer1Div = document.createElement("div");
+      answer1Div.textContent = answer1;
+      answerDiv.appendChild(answer1Div);
+    }
+    addFunctionCallDialog(functionCall);
+    if (answer2) {
+      const answer2Div = document.createElement("div");
+      answer2Div.textContent = answer2;
+      answerDiv.appendChild(answer2Div);
+    }
+  } else {
+    answerDiv.textContent = response;
+  }
 }
 
-function replaceAnswer(answer) {
-  const answerDiv = document.getElementById("answer").lastElementChild;
-  if (answer.includes("<tool_call>") && answer.includes("</tool_call>")) {
-    const parser = new DOMParser();
-    const function_call = JSON.parse(
-      parser
-        .parseFromString(
-          answer.substring(
-            answer.indexOf("<tool_call>"),
-            answer.indexOf("</tool_call>") + "</tool_call>".length,
-          ),
-          "application/xml",
-        )
-        .querySelector("tool_call").textContent,
-    );
-    console.log(answer);
-    const function_name = function_call.name;
-    const parameters = function_call.arguments || "";
-    answerDiv.textContent = "";
-    answerDiv.classList.add("function_call");
-    answerDiv.innerHTML = `
-    <div>Calling Function: <b>${function_name}</b></div>
-    ${parameters ? `<div>Parameters: ${parameters}</div>` : ""}
-    <div class="function_actions">
-      <button class="action-button" id="continueFunction">
-        Continue
-      </button>
-      <button class="action-button" id="abortFunction">Abort</button>
-    </div>
-    `;
-  } else {
-    answerDiv.textContent = answer;
+function addFunctionCallDialog(response) {
+  const answerDiv = document.getElementById("answer");
+  const parser = new DOMParser();
+  const functionCall = JSON.parse(
+    parser
+      .parseFromString(
+        response.substring(
+          response.indexOf("<tool_call>"),
+          response.indexOf("</tool_call>") + "</tool_call>".length,
+        ),
+        "application/xml",
+      )
+      .querySelector("tool_call").textContent,
+  );
+  const function_name = functionCall.name;
+  const parameters = functionCall.arguments || "";
+  const functionDiv = document.createElement("div");
+  functionDiv.classList.add("function_call");
+
+  const functionNameDiv = document.createElement("div");
+  functionNameDiv.innerHTML = `MLC Assistant wants to call function:<br /><b>${function_name}</b>`;
+  functionDiv.appendChild(functionNameDiv);
+
+  if (parameters && Object.keys(parameters).length > 0) {
+    const parametersDiv = document.createElement("div");
+    parametersDiv.textContent = `Parameters: ${JSON.stringify(parameters)}`;
+    functionDiv.appendChild(parametersDiv);
   }
+
+  const functionActionsDiv = document.createElement("div");
+  functionActionsDiv.classList.add("function_actions");
+
+  const continueButton = document.createElement("button");
+  continueButton.classList.add("action-button");
+  continueButton.id = "continueFunction";
+  continueButton.textContent = "Continue";
+
+  continueButton.addEventListener("click", async () => {
+    const [tab] = await chrome.tabs.query({
+      currentWindow: true,
+      active: true,
+    });
+    console.log("tab", tab);
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      action: "function_call",
+      function_name,
+      parameters,
+    });
+    console.log("response", response);
+  });
+
+  functionActionsDiv.appendChild(continueButton);
+  functionDiv.appendChild(functionActionsDiv);
+  answerDiv.appendChild(functionDiv);
 }
 
 document.getElementById("submit").addEventListener("click", () => {

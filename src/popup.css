@@ -74,11 +74,13 @@ body {
 }
 .answer,
 .question {
-  padding: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   color: white;
   font-size: 1rem;
 }
 .question {
+  padding: 1rem;
   font-weight: bold;
 }
 .hidden {
@@ -96,7 +98,6 @@ body {
 #loading {
   padding: .25rem;
 }
-
 #submit:disabled {
   background-color: rgba(75, 83, 99, 0.4);
 }
@@ -111,11 +112,13 @@ body {
   height: 1rem;
   fill: white;
 }
-
 .function_call {
   padding: 1rem;
   background-color: rgba(75, 83, 99, 0.8);
   text-align: center;
+  line-height: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 .function_actions {
   display: flex;
