@@ -1,12 +1,5 @@
-import { GoogleDocPage, OverleafPage } from "@mlc-ai/web-agent-interface";
 import { ExtensionServiceWorkerMLCEngine } from "@mlc-ai/web-llm";
 import { SYSTEM_PROMPT } from "./prompt";
-
-const overleaf = new OverleafPage();
-const gdocs = new GoogleDocPage();
-
-let selectedText = "";
-let customization;
 
 const logger = {
   info: (...args) => {
@@ -20,11 +13,6 @@ const logger = {
   },
 };
 
-//retrieve browser settings and determine customization
-chrome.storage.sync.get({ customization: 0 }, (items) => {
-  customization = items.customization;
-  logger.info("Customization set to ", customization);
-});
 const engine = new ExtensionServiceWorkerMLCEngine({
   initProgressCallback: (progress) => logger.info(progress.text),
 });
@@ -71,14 +59,7 @@ async function handleSubmit(regen) {
   questionDiv.value = input.value;
 
   //adjust the query depending on the prompt customization
-  let query = "";
-  if (customization == 1) {
-    query += "Respond creatively to the following: ";
-  } else if (customization == 2) {
-    query += "Respond with precision to the following: ";
-  }
-
-  query += input.value;
+  let query = input.value;
   logger.info(query);
 
   let curMessage = "";
