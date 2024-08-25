@@ -1,29 +1,21 @@
 import { ExtensionServiceWorkerMLCEngine } from "@mlc-ai/web-llm";
 import { SYSTEM_PROMPT } from "./prompt";
-
-const logger = {
-  info: (...args) => {
-    console.log("[MLC-Assistant]", ...args);
-  },
-  warn: (...args) => {
-    console.warn("[MLC-Assistant]", ...args);
-  },
-  error: (...args) => {
-    console.error("[MLC-Assistant]", ...args);
-  },
-};
+import { Overleaf } from "@mlc-ai/web-agent-interface";
 
 const engine = new ExtensionServiceWorkerMLCEngine({
-  initProgressCallback: (progress) => logger.info(progress.text),
+  initProgressCallback: (progress) => console.log(progress.text),
 });
 window.addEventListener("load", () => {
   loadWebllmEngine();
 });
 
+const MAX_MESSAGES = 8;
+let messages = [{role: 'system', content: SYSTEM_PROMPT}];
+
 async function loadWebllmEngine() {
   await engine.reload("Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC");
 
-  logger.info("Engine loaded.");
+  console.log("Engine loaded.");
   document.getElementById("loading").classList.add("hidden");
   document.getElementById("submit").classList.remove("hidden");
   document.addEventListener("keydown", function (event) {
@@ -38,16 +30,20 @@ async function loadWebllmEngine() {
 
 async function handleSubmit(regen) {
   // Input depends on whether the question is new or is being regenerated
-  let inputTemp = document.getElementById("modalInput");
+  let query;
 
   // If question is regenerating, get question
   if (regen) {
     // change inputTemp to the question
-    inputTemp = document.getElementById("question");
-    logger.info("regen input", inputTemp.value);
+    query = messages.at(-1).content;
+  } else {
+    query = document.getElementById("modalInput").value;
+    messages = [...messages, { role: "user", content: query }];
   }
 
-  const input = inputTemp;
+  while (messages.length > MAX_MESSAGES) {
+    messages.splice(1, 2); // Remove the message at index 1 (second element)
+  }
 
   // Show the action bar
   const actionsDiv = document.getElementById("actions");
@@ -55,24 +51,15 @@ async function handleSubmit(regen) {
   //show the question
   const questionDiv = document.getElementById("question");
   questionDiv.classList.remove("hidden");
-  questionDiv.textContent = "You: " + input.value;
-  questionDiv.value = input.value;
+  questionDiv.textContent = "You: " + query;
+  questionDiv.value = query;
 
-  //adjust the query depending on the prompt customization
-  let query = input.value;
-  logger.info(query);
-
+  clearAnswer();
   let curMessage = "";
-  createAnswerEntry();
+  console.log("messages", messages);
   const completion = await engine.chat.completions.create({
     stream: true,
-    messages: [
-      {
-        role: "system",
-        content: SYSTEM_PROMPT,
-      },
-      { role: "user", content: query },
-    ],
+    messages,
   });
 
   for await (const chunk of completion) {
@@ -87,19 +74,14 @@ async function handleSubmit(regen) {
   updateAnswer(finalMessage);
 }
 
-function createAnswerEntry() {
+function clearAnswer() {
   const answerDiv = document.getElementById("answer");
-  answerDiv.classList.remove("hidden");
-  const answerEntry = document.createElement("div");
-  answerEntry.classList.add("answer-item");
-  answerDiv.appendChild(answerEntry);
-
-  const modalInput = document.getElementById("modalInput");
-  modalInput.value = "";
+  answerDiv.innerHTML = "";
 }
 
 function updateAnswer(response) {
   const answerDiv = document.getElementById("answer");
+  answerDiv.classList.remove("hidden");
   answerDiv.innerHTML = "";
   if (response.includes("<tool_call>") && response.includes("</tool_call>")) {
     const answer1 = response.substring(0, response.indexOf("<tool_call>"));
@@ -130,24 +112,38 @@ function updateAnswer(response) {
 function addFunctionCallDialog(response) {
   const answerDiv = document.getElementById("answer");
   const parser = new DOMParser();
-  const functionCall = JSON.parse(
-    parser
-      .parseFromString(
-        response.substring(
-          response.indexOf("<tool_call>"),
-          response.indexOf("</tool_call>") + "</tool_call>".length,
-        ),
-        "application/xml",
-      )
-      .querySelector("tool_call").textContent,
+  const functionCallString = parser
+    .parseFromString(
+      response.substring(
+        response.indexOf("<tool_call>"),
+        response.indexOf("</tool_call>") + "</tool_call>".length,
+      ),
+      "application/xml",
+    )
+    .querySelector("tool_call").textContent;
+  console.log("functionCallString", functionCallString);
+  let functionCall;
+  try {
+    functionCall = JSON.parse(functionCallString);
+  } catch {
+    console.error("Error parsing function call", functionCallString);
+    return;
+  }
+  console.log(
+    Overleaf.availableActions,
+    functionCall.name,
+    Overleaf.availableActions.includes(functionCall.name),
   );
-  const function_name = functionCall.name;
+  if (!Overleaf.availableActions.includes(functionCall.name)) {
+    console.warn("function name not in available page handler actions");
+    return;
+  }
   const parameters = functionCall.arguments || "";
   const functionDiv = document.createElement("div");
   functionDiv.classList.add("function_call");
 
   const functionNameDiv = document.createElement("div");
-  functionNameDiv.innerHTML = `MLC Assistant wants to call function:<br /><b>${function_name}</b>`;
+  functionNameDiv.innerHTML = `MLC Assistant wants to perform an action:<br /><b>${Overleaf.nameToDisplayName[functionCall.name]}</b>`;
   functionDiv.appendChild(functionNameDiv);
 
   if (parameters && Object.keys(parameters).length > 0) {
@@ -172,10 +168,38 @@ function addFunctionCallDialog(response) {
     console.log("tab", tab);
     const response = await chrome.tabs.sendMessage(tab.id, {
       action: "function_call",
-      function_name,
+      function_name: functionCall.name,
       parameters,
     });
     console.log("response", response);
+
+    if (response && response.length > 0) {
+      messages = [
+        ...messages,
+        {
+          role: "tool",
+          content: response,
+          tool_call_id: `${messages.length}`,
+        },
+      ];
+      let curMessage = "";
+      console.log("messages", messages);
+      const completion = await engine.chat.completions.create({
+        stream: true,
+        messages,
+      });
+  
+      for await (const chunk of completion) {
+        const curDelta = chunk.choices[0].delta.content;
+        if (curDelta) {
+          curMessage += curDelta;
+        }
+        updateAnswer(curMessage);
+      }
+  
+      const finalMessage = await engine.getMessage();
+      updateAnswer(finalMessage);
+    }
   });
 
   functionActionsDiv.appendChild(continueButton);
@@ -187,5 +211,5 @@ document.getElementById("submit").addEventListener("click", () => {
   handleSubmit(false);
 });
 document.getElementById("regenerateAction").addEventListener("click", () => {
-  handleRegenerate();
+  handleSubmit(true);
 });

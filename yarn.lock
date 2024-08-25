@@ -78,10 +78,10 @@
 "@mlc-ai/web-agent-interface@file:../web-agent-interface/lib":
   version "0.0.0"
 
-"@mlc-ai/web-llm@^0.2.60":
-  version "0.2.60"
-  resolved "https://registry.yarnpkg.com/@mlc-ai/web-llm/-/web-llm-0.2.60.tgz#6188a44ff87c480436b4aeca9eb741e48c4fad2a"
-  integrity sha512-zy9gO+36uZeH1sswMLhFvP2ngeXqUkmFvZ5zi1FcUFOpnVvjNuVECOkoKGXD5sWlPsOIDooEA9scl0mZrPTOIA==
+"@mlc-ai/web-llm@^0.2.62":
+  version "0.2.62"
+  resolved "https://registry.yarnpkg.com/@mlc-ai/web-llm/-/web-llm-0.2.62.tgz#cbe0e927e46f95a50f8292c4f5cfea5a9f0a2002"
+  integrity sha512-biEYs13nfNjRa4GRVXRsnXLk/yCTslxSH3OjW/4PjoyvZcCtcIe4Aks20WnrMpJMz63ezE6noJF2fkFWStsI0A==
   dependencies:
     loglevel "^1.9.1"
 

@@ -14,7 +14,7 @@ body {
   padding: 0;
 }
 body {
-  min-width: 360px;
+  min-width: 400px;
   background-color: rgba(75, 83, 99, 0.9);
 }
 .modal {
