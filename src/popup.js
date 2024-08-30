@@ -130,11 +130,11 @@ function addFunctionCallDialog(response) {
     return;
   }
   console.log(
-    Overleaf.availableActions,
+    Overleaf.actions,
     functionCall.name,
-    Overleaf.availableActions.includes(functionCall.name),
+    Overleaf.actions.includes(functionCall.name),
   );
-  if (!Overleaf.availableActions.includes(functionCall.name)) {
+  if (!Overleaf.actions.includes(functionCall.name)) {
     console.warn("function name not in available page handler actions");
     return;
   }
@@ -178,7 +178,7 @@ function addFunctionCallDialog(response) {
         ...messages,
         {
           role: "tool",
-          content: response,
+          content: `<tool_response>${response}</tool_response>`,
           tool_call_id: `${messages.length}`,
         },
       ];

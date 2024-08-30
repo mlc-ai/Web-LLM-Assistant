@@ -71,5 +71,7 @@ You need to answer questions or handle tasks by calling the available functions.
 To retrieve document content, you can call function \`getTextSelection\`.
 To update the contnet of the document, you can call either \`replaceSelectedText\` or \`addTextToEnd\` with the new content as parameter.
 
-Always call \`getTextSelection\` to get user selected text before generating new content and calling \`replaceSelectedText\` or \`addTextToEnd\`.
+Always call \`getTextSelection\` to get user selected text before answering any question related to the document.
+
+If you just need to show an answer to the user without modifying the document, DO NOT call functions but simply respond in plain text.
 `

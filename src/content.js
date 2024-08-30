@@ -1,10 +1,9 @@
-import { Overleaf, GoogleDoc } from "@mlc-ai/web-agent-interface";
+import { Overleaf } from "@mlc-ai/web-agent-interface";
 let handler;
 
 if (window.location.hostname === "www.overleaf.com") {
-  handler = Overleaf.handler();
-} else if (window.location.hostname === "docs.google.com") {
-  handler = GoogleDoc.handler();
+  handler = Overleaf.createHandler();
+  console.log("WAI handler intialized");
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
