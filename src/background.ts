@@ -11,5 +11,3 @@ chrome.runtime.onConnect.addListener(function (port) {
   }
   port.onMessage.addListener(webllmHandler.onmessage.bind(webllmHandler));
 });
-
-

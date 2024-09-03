@@ -86,7 +86,8 @@ body {
 .hidden {
   display: none !important;
 }
-#loading, #submit {
+#loading,
+#submit {
   width: 2rem;
   height: 2rem;
   border-radius: 0.25rem;
@@ -96,7 +97,7 @@ body {
   justify-content: center;
 }
 #loading {
-  padding: .35rem;
+  padding: 0.35rem;
 }
 #loading svg {
   animation: spin 2s linear infinite;
@@ -126,7 +127,7 @@ body {
 .function_actions {
   display: flex;
   justify-content: center;
-  margin-top: .75rem;
+  margin-top: 0.75rem;
 }
 
 @keyframes spin {

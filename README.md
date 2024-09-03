@@ -32,6 +32,7 @@ Launch Google Chrome and navigate to the extensions page by entering `chrome://e
 <img src="https://github.com/mlc-ai/mlc-assistant/assets/11940172/cdb18fb3-24c5-41bf-9a40-484692c2150a" width="300">
 
 ## Architecture
+
 The MLC Assistant has the following architecture:
 
 ![MLC Assistant Architecture](https://github.com/user-attachments/assets/2cc7803f-aeca-45c8-a8d7-70384926ddb3)

@@ -10,7 +10,8 @@ window.addEventListener("load", () => {
 });
 
 const MAX_MESSAGES = 8;
-let messages = [{role: 'system', content: SYSTEM_PROMPT}];
+let messages = [{ role: "system", content: SYSTEM_PROMPT }];
+let lastQuery = null;
 
 async function loadWebllmEngine() {
   await engine.reload("Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC");
@@ -29,16 +30,17 @@ async function loadWebllmEngine() {
 }
 
 async function handleSubmit(regen) {
-  // Input depends on whether the question is new or is being regenerated
-  let query;
+  if ((regen && !lastQuery) || (!regen && !document.getElementById("modalInput").value)) {
+    return;
+  }
 
-  // If question is regenerating, get question
+  let query;
   if (regen) {
-    // change inputTemp to the question
-    query = messages.at(-1).content;
+    query = lastQuery;
   } else {
     query = document.getElementById("modalInput").value;
     messages = [...messages, { role: "user", content: query }];
+    lastQuery = query;
   }
 
   while (messages.length > MAX_MESSAGES) {
@@ -60,6 +62,7 @@ async function handleSubmit(regen) {
   const completion = await engine.chat.completions.create({
     stream: true,
     messages,
+    temperature: 0,
   });
 
   for await (const chunk of completion) {
@@ -71,6 +74,7 @@ async function handleSubmit(regen) {
   }
 
   const finalMessage = await engine.getMessage();
+  messages = [...messages, { role: 'assistant', content: finalMessage }];
   updateAnswer(finalMessage);
 }
 
@@ -129,13 +133,8 @@ function addFunctionCallDialog(response) {
     console.error("Error parsing function call", functionCallString);
     return;
   }
-  console.log(
-    Overleaf.actions,
-    functionCall.name,
-    Overleaf.actions.includes(functionCall.name),
-  );
-  if (!Overleaf.actions.includes(functionCall.name)) {
-    console.warn("function name not in available page handler actions");
+  if (!Overleaf.tools.includes(functionCall.name)) {
+    console.warn("function name not in available page handler tools");
     return;
   }
   const parameters = functionCall.arguments || "";
@@ -188,7 +187,7 @@ function addFunctionCallDialog(response) {
         stream: true,
         messages,
       });
-  
+
       for await (const chunk of completion) {
         const curDelta = chunk.choices[0].delta.content;
         if (curDelta) {
@@ -196,8 +195,9 @@ function addFunctionCallDialog(response) {
         }
         updateAnswer(curMessage);
       }
-  
+
       const finalMessage = await engine.getMessage();
+      messages = [...messages, { role: 'assistant', content: finalMessage }];
       updateAnswer(finalMessage);
     }
   });
