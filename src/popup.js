@@ -32,12 +32,18 @@ function disableSubmit() {
   document.getElementById("submit").disabled = true;
   document.getElementById("loading").classList.remove("hidden");
   document.getElementById("submit").classList.add("hidden");
+  document.getElementById("regenerate").classList.add("hidden");
+  document.getElementById("regenerate").disabled = true;
 }
 
 function enableSubmit() {
   document.getElementById("submit").disabled = false;
   document.getElementById("loading").classList.add("hidden");
   document.getElementById("submit").classList.remove("hidden");
+  if (messages.length > 1) {
+    document.getElementById("regenerate").classList.remove("hidden");
+    document.getElementById("regenerate").disabled = false;
+  }
 }
 
 async function handleSubmit(regen) {
@@ -58,6 +64,9 @@ async function handleSubmit(regen) {
   let query;
   if (regen) {
     query = lastQuery;
+    if (messages[messages.length - 1].role === "assistant") {
+      messages.pop();
+    }
   } else {
     query = document.getElementById("modalInput").value;
     document.getElementById("modalInput").value = "";
@@ -69,9 +78,6 @@ async function handleSubmit(regen) {
     messages.splice(1, 2); // Remove the message at index 1 (second element)
   }
 
-  // Show the action bar
-  const actionsDiv = document.getElementById("actions");
-  actionsDiv.classList.remove("hidden");
   //show the question
   const questionDiv = document.getElementById("question");
   questionDiv.classList.remove("hidden");
@@ -244,6 +250,6 @@ function addFunctionCallDialog(response) {
 document.getElementById("submit").addEventListener("click", () => {
   handleSubmit(false);
 });
-document.getElementById("regenerateAction").addEventListener("click", () => {
+document.getElementById("regenerate").addEventListener("click", () => {
   handleSubmit(true);
 });

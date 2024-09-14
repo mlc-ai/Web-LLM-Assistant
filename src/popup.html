@@ -10,11 +10,6 @@
     <div class="modal" id="modal">
       <div class="question hidden" id="question"></div>
       <div class="answer hidden" id="answer"></div>
-      <div class="actions hidden" id="actions">
-        <button class="action-button" id="regenerateAction">
-          <img src="icons/redo.png" alt="Regenerate" class="regenerate-img" />
-        </button>
-      </div>
       <div class="input-container">
         <div class="input">
           <input
@@ -24,7 +19,7 @@
             id="modalInput"
           />
         </div>
-        <div id="loading">
+        <div id="loading" class="button">
           <svg
             fill="#ffffff"
             version="1.1"
@@ -73,7 +68,7 @@
             </g>
           </svg>
         </div>
-        <button id="submit" class="hidden" disabled>
+        <button id="submit" class="hidden button" disabled>
           <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
             <g data-name="1" id="_1">
               <path
@@ -84,6 +79,9 @@
               />
             </g>
           </svg>
+        </button>
+        <button class="hidden button" id="regenerate" disabled>
+          <img src="icons/redo.png" alt="Regenerate" class="regenerate-img" />
         </button>
       </div>
     </div>

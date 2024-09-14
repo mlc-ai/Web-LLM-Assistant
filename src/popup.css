@@ -89,8 +89,7 @@ body {
 .hidden {
   display: none !important;
 }
-#loading,
-#submit {
+.input-container .button {
   width: 2rem;
   height: 2rem;
   border-radius: 0.25rem;
@@ -98,6 +97,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 #loading {
   padding: 0.35rem;
