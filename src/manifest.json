@@ -30,7 +30,14 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "icons/icon-16.png",
         "icons/icon-32.png",
+        "icons/icon-64.png",
+        "icons/icon-128.png",
+        "icons/icon-gray-16.png",
+        "icons/icon-gray-32.png",
+        "icons/icon-gray-64.png",
+        "icons/icon-gray-128.png",
         "icons/wand-64.png",
         "icons/thumbs-up-lined.png",
         "icons/thumbs-up-filled.png",

@@ -1,6 +1,6 @@
+import { getToolInfo, allTools } from "@mlc-ai/web-agent-interface";
 import { ExtensionServiceWorkerMLCEngine } from "@mlc-ai/web-llm";
 import { SYSTEM_PROMPT } from "./prompt";
-import { Overleaf } from "@mlc-ai/web-agent-interface";
 
 const engine = new ExtensionServiceWorkerMLCEngine({
   initProgressCallback: (progress) => console.log(progress.text),
@@ -30,7 +30,10 @@ async function loadWebllmEngine() {
 }
 
 async function handleSubmit(regen) {
-  if ((regen && !lastQuery) || (!regen && !document.getElementById("modalInput").value)) {
+  if (
+    (regen && !lastQuery) ||
+    (!regen && !document.getElementById("modalInput").value)
+  ) {
     return;
   }
 
@@ -74,7 +77,7 @@ async function handleSubmit(regen) {
   }
 
   const finalMessage = await engine.getMessage();
-  messages = [...messages, { role: 'assistant', content: finalMessage }];
+  messages = [...messages, { role: "assistant", content: finalMessage }];
   updateAnswer(finalMessage);
 }
 
@@ -133,16 +136,23 @@ function addFunctionCallDialog(response) {
     console.error("Error parsing function call", functionCallString);
     return;
   }
-  if (!Overleaf.tools.includes(functionCall.name)) {
-    console.warn("function name not in available page handler tools");
+
+  if (!allTools.includes(functionCall.name)) {
+    console.error("Tool not found", functionCall.name);
+    // Create and append error div
+    const errorDiv = document.createElement("div");
+    errorDiv.classList.add("error-message");
+    errorDiv.textContent = `Error: Assistant tried to call a tool ${functionCall.name} that doesn't exist.`;
+    answerDiv.appendChild(errorDiv);
     return;
   }
+
   const parameters = functionCall.arguments || "";
   const functionDiv = document.createElement("div");
   functionDiv.classList.add("function_call");
 
   const functionNameDiv = document.createElement("div");
-  functionNameDiv.innerHTML = `MLC Assistant wants to perform an action:<br /><b>${Overleaf.nameToDisplayName[functionCall.name]}</b>`;
+  functionNameDiv.innerHTML = `MLC Assistant wants to perform an action:<br /><b>${getToolInfo(functionCall.name)?.displayName}</b>`;
   functionDiv.appendChild(functionNameDiv);
 
   if (parameters && Object.keys(parameters).length > 0) {
@@ -164,7 +174,6 @@ function addFunctionCallDialog(response) {
       currentWindow: true,
       active: true,
     });
-    console.log("tab", tab);
     const response = await chrome.tabs.sendMessage(tab.id, {
       action: "function_call",
       function_name: functionCall.name,
@@ -178,7 +187,6 @@ function addFunctionCallDialog(response) {
         {
           role: "tool",
           content: `<tool_response>${response}</tool_response>`,
-          tool_call_id: `${messages.length}`,
         },
       ];
       let curMessage = "";
@@ -197,7 +205,7 @@ function addFunctionCallDialog(response) {
       }
 
       const finalMessage = await engine.getMessage();
-      messages = [...messages, { role: 'assistant', content: finalMessage }];
+      messages = [...messages, { role: "assistant", content: finalMessage }];
       updateAnswer(finalMessage);
     }
   });

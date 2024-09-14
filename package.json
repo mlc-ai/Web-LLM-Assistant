@@ -16,6 +16,7 @@
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
+    "eslint": "^9.9.1",
     "events": "^3.3.0",
     "os-browserify": "^0.3.0",
     "parcel": "^2.10.3",
