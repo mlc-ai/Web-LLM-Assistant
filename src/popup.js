@@ -12,13 +12,13 @@ window.addEventListener("load", () => {
 const MAX_MESSAGES = 8;
 let messages = [{ role: "system", content: SYSTEM_PROMPT }];
 let lastQuery = null;
+let isGenerating = false;
 
 async function loadWebllmEngine() {
   await engine.reload("Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC");
 
   console.log("Engine loaded.");
-  document.getElementById("loading").classList.add("hidden");
-  document.getElementById("submit").classList.remove("hidden");
+  enableSubmit();
   document.addEventListener("keydown", function (event) {
     const key = event.key;
     const input = document.getElementById("modalInput");
@@ -26,14 +26,32 @@ async function loadWebllmEngine() {
       handleSubmit(false);
     }
   });
+}
+
+function disableSubmit() {
+  document.getElementById("submit").disabled = true;
+  document.getElementById("loading").classList.remove("hidden");
+  document.getElementById("submit").classList.add("hidden");
+}
+
+function enableSubmit() {
   document.getElementById("submit").disabled = false;
+  document.getElementById("loading").classList.add("hidden");
+  document.getElementById("submit").classList.remove("hidden");
 }
 
 async function handleSubmit(regen) {
+  if (isGenerating) {
+    return;
+  }
+  isGenerating = true;
+  disableSubmit();
+
   if (
     (regen && !lastQuery) ||
     (!regen && !document.getElementById("modalInput").value)
   ) {
+    enableSubmit();
     return;
   }
 
@@ -42,6 +60,7 @@ async function handleSubmit(regen) {
     query = lastQuery;
   } else {
     query = document.getElementById("modalInput").value;
+    document.getElementById("modalInput").value = "";
     messages = [...messages, { role: "user", content: query }];
     lastQuery = query;
   }
@@ -79,6 +98,8 @@ async function handleSubmit(regen) {
   const finalMessage = await engine.getMessage();
   messages = [...messages, { role: "assistant", content: finalMessage }];
   updateAnswer(finalMessage);
+  isGenerating = false;
+  enableSubmit();
 }
 
 function clearAnswer() {
@@ -170,43 +191,48 @@ function addFunctionCallDialog(response) {
   continueButton.textContent = "Continue";
 
   continueButton.addEventListener("click", async () => {
-    const [tab] = await chrome.tabs.query({
-      currentWindow: true,
-      active: true,
-    });
-    const response = await chrome.tabs.sendMessage(tab.id, {
-      action: "function_call",
-      function_name: functionCall.name,
-      parameters,
-    });
-    console.log("response", response);
-
-    if (response && response.length > 0) {
-      messages = [
-        ...messages,
-        {
-          role: "tool",
-          content: `<tool_response>${response}</tool_response>`,
-        },
-      ];
-      let curMessage = "";
-      console.log("messages", messages);
-      const completion = await engine.chat.completions.create({
-        stream: true,
-        messages,
+    disableSubmit();
+    try {
+      const [tab] = await chrome.tabs.query({
+          currentWindow: true,
+        active: true,
       });
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        action: "function_call",
+        function_name: functionCall.name,
+        parameters,
+      });
+      console.log("response", response);
 
-      for await (const chunk of completion) {
-        const curDelta = chunk.choices[0].delta.content;
-        if (curDelta) {
-          curMessage += curDelta;
+      if (response && response.length > 0) {
+        messages = [
+          ...messages,
+          {
+            role: "tool",
+            content: `<tool_response>${response}</tool_response>`,
+          },
+        ];
+        let curMessage = "";
+        console.log("messages", messages);
+        const completion = await engine.chat.completions.create({
+          stream: true,
+          messages,
+        });
+
+        for await (const chunk of completion) {
+          const curDelta = chunk.choices[0].delta.content;
+          if (curDelta) {
+            curMessage += curDelta;
+          }
+          updateAnswer(curMessage);
         }
-        updateAnswer(curMessage);
-      }
 
-      const finalMessage = await engine.getMessage();
-      messages = [...messages, { role: "assistant", content: finalMessage }];
-      updateAnswer(finalMessage);
+        const finalMessage = await engine.getMessage();
+        messages = [...messages, { role: "assistant", content: finalMessage }];
+        updateAnswer(finalMessage);
+      }
+    } finally {
+      enableSubmit();
     }
   });
 
