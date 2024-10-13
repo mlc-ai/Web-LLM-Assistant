@@ -3,11 +3,34 @@ import { ExtensionServiceWorkerMLCEngine } from "@mlc-ai/web-llm";
 import { SYSTEM_PROMPT } from "./prompt";
 
 const engine = new ExtensionServiceWorkerMLCEngine({
-  initProgressCallback: (progress) => console.log(progress.text),
+  initProgressCallback: (progress) => {
+    console.log(progress.text);
+    const match = progress.text.match(/\[(\d+)\/(\d+)]/);
+    if (match) {
+      const progress = parseInt(match[1], 10);
+      const totalProgress = parseInt(match[2], 10);
+      updateInitProgressBar(progress / totalProgress);
+    } else {
+      updateInitProgressBar(progress.progress);
+    }
+  },
 });
 window.addEventListener("load", () => {
   loadWebllmEngine();
 });
+
+const callToolFunction = async (functionCall) => {
+  const { name: function_name, arguments: parameters } = functionCall;
+  const [tab] = await chrome.tabs.query({
+    currentWindow: true,
+    active: true,
+  });
+  return await chrome.tabs.sendMessage(tab.id, {
+    action: "function_call",
+    function_name,
+    parameters,
+  });
+};
 
 const MAX_MESSAGES = 8;
 let messages = [{ role: "system", content: SYSTEM_PROMPT }];
@@ -46,7 +69,7 @@ function enableSubmit() {
   }
 }
 
-async function handleSubmit(regen) {
+async function handleSubmit(regenerate) {
   if (isGenerating) {
     return;
   }
@@ -54,21 +77,20 @@ async function handleSubmit(regen) {
   disableSubmit();
 
   if (
-    (regen && !lastQuery) ||
-    (!regen && !document.getElementById("modalInput").value)
+    (regenerate && !lastQuery) ||
+    (!regenerate && !document.getElementById("modalInput").value)
   ) {
     enableSubmit();
     return;
   }
-
-  let query;
-  if (regen) {
+  let query = "";
+  if (regenerate) {
     query = lastQuery;
     if (messages[messages.length - 1].role === "assistant") {
       messages.pop();
     }
   } else {
-    query = document.getElementById("modalInput").value;
+    query += document.getElementById("modalInput").value;
     document.getElementById("modalInput").value = "";
     messages = [...messages, { role: "user", content: query }];
     lastQuery = query;
@@ -78,7 +100,6 @@ async function handleSubmit(regen) {
     messages.splice(1, 2); // Remove the message at index 1 (second element)
   }
 
-  //show the question
   const questionDiv = document.getElementById("question");
   questionDiv.classList.remove("hidden");
   questionDiv.textContent = "You: " + query;
@@ -174,7 +195,7 @@ function addFunctionCallDialog(response) {
     return;
   }
 
-  const parameters = functionCall.arguments || "";
+  const parameters = functionCall.arguments || {};
   const functionDiv = document.createElement("div");
   functionDiv.classList.add("function_call");
 
@@ -199,17 +220,7 @@ function addFunctionCallDialog(response) {
   continueButton.addEventListener("click", async () => {
     disableSubmit();
     try {
-      const [tab] = await chrome.tabs.query({
-          currentWindow: true,
-        active: true,
-      });
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: "function_call",
-        function_name: functionCall.name,
-        parameters,
-      });
-      console.log("response", response);
-
+      const response = await callToolFunction(functionCall);
       if (response && response.length > 0) {
         messages = [
           ...messages,
@@ -245,6 +256,17 @@ function addFunctionCallDialog(response) {
   functionActionsDiv.appendChild(continueButton);
   functionDiv.appendChild(functionActionsDiv);
   answerDiv.appendChild(functionDiv);
+}
+
+function updateInitProgressBar(percentage) {
+  if (percentage < 0) percentage = 0;
+  if (percentage > 1) percentage = 1;
+
+  document.getElementById("progress-bar").style.width = percentage * 100 + "%";
+
+  if (percentage >= 1) {
+    document.getElementById("progress-bar-container").classList.add("hidden");
+  }
 }
 
 document.getElementById("submit").addEventListener("click", () => {
