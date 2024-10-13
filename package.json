@@ -1,7 +1,7 @@
 {
-  "name": "mlc-assistant",
+  "name": "webllm-assistant",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI assistant within Chrome browser.",
   "private": true,
   "scripts": {
     "build": "parcel build src/manifest.json --config @parcel/config-webextension",
