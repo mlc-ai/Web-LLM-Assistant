@@ -32,6 +32,6 @@
   },
   "dependencies": {
     "@mlc-ai/web-agent-interface": "file:../web-agent-interface/lib",
-    "@mlc-ai/web-llm": "^0.2.62"
+    "@mlc-ai/web-llm": "^0.2.73"
   }
 }

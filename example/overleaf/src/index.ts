@@ -22,7 +22,7 @@ const initProgressCallback = (report: webllm.InitProgressReport) => {
 };
 
 async function overleafSummaryExample() {
-  const system_prompt = `You are a helpful Assistant running in the user's browser.
+  const system_prompt = `You are a helpful assistant running in the user's browser.
 You need to answer questions or handle tasks by calling the available functions provided within <tools></tools> XML tags.
 You must use these functions to assist with the user's query.
 

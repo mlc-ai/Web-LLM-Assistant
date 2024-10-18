@@ -20,7 +20,8 @@ window.addEventListener("load", () => {
 });
 
 const callToolFunction = async (functionCall) => {
-  const { name: function_name, arguments: parameters } = functionCall;
+  console.log("callToolFunction", functionCall);
+  const { name: function_name, arguments: parameters = {} } = functionCall;
   const [tab] = await chrome.tabs.query({
     currentWindow: true,
     active: true,
@@ -38,7 +39,8 @@ let lastQuery = null;
 let isGenerating = false;
 
 async function loadWebllmEngine() {
-  await engine.reload("Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC");
+  const selectedModel = "Hermes-3-Llama-3.1-8B-q4f32_1-MLC";
+  await engine.reload(selectedModel);
 
   console.log("Engine loaded.");
   enableSubmit();
@@ -83,16 +85,27 @@ async function handleSubmit(regenerate) {
     enableSubmit();
     return;
   }
-  let query = "";
+  let query;
   if (regenerate) {
     query = lastQuery;
     if (messages[messages.length - 1].role === "assistant") {
       messages.pop();
     }
   } else {
-    query += document.getElementById("modalInput").value;
+    const currentSelection = await callToolFunction({
+      name: "getSelectedText",
+    });
+    let context = '';
+    if (currentSelection) {
+      console.log("currentSelection", currentSelection)
+      context =
+        "<Context Start>\n## User's current selected text:\n" +
+        currentSelection +
+        "<Context End>";
+    }
+    query = document.getElementById("modalInput").value;
     document.getElementById("modalInput").value = "";
-    messages = [...messages, { role: "user", content: query }];
+    messages = [...messages, { role: "user", content: context + "\n\n" + query }];
     lastQuery = query;
   }
 
