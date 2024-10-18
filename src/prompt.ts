@@ -1,48 +1,14 @@
+import { tool } from "@mlc-ai/web-agent-interface";
+
 export const SYSTEM_PROMPT = `You are a helpful assistant running in the user's browser.
 
 Here are the list of available tools you can use:
 <tools>
-[{
-  "type": "function",
-  "function": {
-    "name": "replaceSelectedText",
-    "description": "Replaces the user's current selected text in the document with new text content.",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "newText": { "type": "string" }
-      },
-      "required": ["newText"]
-    }
-  }
-},
-{
-  "type": "function",
-  "function": {
-    "name": "appendTextToDocument",
-    "description": "Appends text content to the end of the document.",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "text": { "type": "string" }
-      },
-      "required": ["text"]
-    }
-  }
-}]
-</tools>
-
-Use the following pydantic model JSON schema for each tool call you make:
-
-{
-  "properties": {
-    "arguments": { "title": "Arguments", "type": "object" },
-    "name": { "title": "Name", "type": "string" }
-  },
-  "required": ["arguments", "name"],
-  "title": "FunctionCall",
-  "type": "object"
-}
+[
+${Object.values(tool)
+  .map((t) => JSON.stringify(t.schema))
+  .join(",\n")}
+]
 
 For each function call, return a JSON object with the function name and arguments within <tool_call></tool_call> XML tags as follows:
 

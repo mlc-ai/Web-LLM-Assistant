@@ -1,5 +1,8 @@
-import { getToolInfo, allTools } from "@mlc-ai/web-agent-interface";
-import { ExtensionServiceWorkerMLCEngine } from "@mlc-ai/web-llm";
+import { tool } from "@mlc-ai/web-agent-interface";
+import {
+  ChatCompletionMessageParam,
+  ExtensionServiceWorkerMLCEngine,
+} from "@mlc-ai/web-llm";
 import { SYSTEM_PROMPT } from "./prompt";
 
 const engine = new ExtensionServiceWorkerMLCEngine({
@@ -26,15 +29,19 @@ const callToolFunction = async (functionCall) => {
     currentWindow: true,
     active: true,
   });
-  return await chrome.tabs.sendMessage(tab.id, {
-    action: "function_call",
-    function_name,
-    parameters,
-  });
+  if (tab.id) {
+    return chrome.tabs.sendMessage(tab.id, {
+      action: "function_call",
+      function_name,
+      parameters,
+    });
+  }
 };
 
 const MAX_MESSAGES = 8;
-let messages = [{ role: "system", content: SYSTEM_PROMPT }];
+let messages: ChatCompletionMessageParam[] = [
+  { role: "system", content: SYSTEM_PROMPT },
+];
 let lastQuery = null;
 let isGenerating = false;
 
@@ -53,21 +60,30 @@ async function loadWebllmEngine() {
   });
 }
 
+const submitButton = document.getElementById("submit") as HTMLButtonElement;
+const loadingIcon = document.getElementById("loading") as HTMLElement;
+const regenerateButton = document.getElementById(
+  "regenerate",
+) as HTMLButtonElement;
+const modalInput = document.getElementById("modalInput") as HTMLInputElement;
+const answerDiv = document.getElementById("answer") as HTMLElement;
+const questionDiv = document.getElementById("question") as HTMLElement;
+
 function disableSubmit() {
-  document.getElementById("submit").disabled = true;
-  document.getElementById("loading").classList.remove("hidden");
-  document.getElementById("submit").classList.add("hidden");
-  document.getElementById("regenerate").classList.add("hidden");
-  document.getElementById("regenerate").disabled = true;
+  submitButton.disabled = true;
+  loadingIcon.classList.remove("hidden");
+  submitButton.classList.add("hidden");
+  regenerateButton.classList.add("hidden");
+  regenerateButton.disabled = true;
 }
 
 function enableSubmit() {
-  document.getElementById("submit").disabled = false;
-  document.getElementById("loading").classList.add("hidden");
-  document.getElementById("submit").classList.remove("hidden");
+  submitButton.disabled = false;
+  loadingIcon.classList.add("hidden");
+  submitButton.classList.remove("hidden");
   if (messages.length > 1) {
-    document.getElementById("regenerate").classList.remove("hidden");
-    document.getElementById("regenerate").disabled = false;
+    regenerateButton.classList.remove("hidden");
+    regenerateButton.disabled = false;
   }
 }
 
@@ -78,10 +94,7 @@ async function handleSubmit(regenerate) {
   isGenerating = true;
   disableSubmit();
 
-  if (
-    (regenerate && !lastQuery) ||
-    (!regenerate && !document.getElementById("modalInput").value)
-  ) {
+  if ((regenerate && !lastQuery) || (!regenerate && !modalInput.value)) {
     enableSubmit();
     return;
   }
@@ -95,17 +108,20 @@ async function handleSubmit(regenerate) {
     const currentSelection = await callToolFunction({
       name: "getSelectedText",
     });
-    let context = '';
+    let context = "";
     if (currentSelection) {
-      console.log("currentSelection", currentSelection)
+      console.log("currentSelection", currentSelection);
       context =
         "<Context Start>\n## User's current selected text:\n" +
         currentSelection +
         "<Context End>";
     }
-    query = document.getElementById("modalInput").value;
-    document.getElementById("modalInput").value = "";
-    messages = [...messages, { role: "user", content: context + "\n\n" + query }];
+    query = modalInput.value;
+    modalInput.value = "";
+    messages = [
+      ...messages,
+      { role: "user", content: context + "\n\n" + query },
+    ];
     lastQuery = query;
   }
 
@@ -113,10 +129,8 @@ async function handleSubmit(regenerate) {
     messages.splice(1, 2); // Remove the message at index 1 (second element)
   }
 
-  const questionDiv = document.getElementById("question");
   questionDiv.classList.remove("hidden");
   questionDiv.textContent = "You: " + query;
-  questionDiv.value = query;
 
   clearAnswer();
   let curMessage = "";
@@ -143,12 +157,11 @@ async function handleSubmit(regenerate) {
 }
 
 function clearAnswer() {
-  const answerDiv = document.getElementById("answer");
+  const answerDiv = document.getElementById("answer") as HTMLElement;
   answerDiv.innerHTML = "";
 }
 
 function updateAnswer(response) {
-  const answerDiv = document.getElementById("answer");
   answerDiv.classList.remove("hidden");
   answerDiv.innerHTML = "";
   if (response.includes("<tool_call>") && response.includes("</tool_call>")) {
@@ -178,7 +191,6 @@ function updateAnswer(response) {
 }
 
 function addFunctionCallDialog(response) {
-  const answerDiv = document.getElementById("answer");
   const parser = new DOMParser();
   const functionCallString = parser
     .parseFromString(
@@ -188,8 +200,12 @@ function addFunctionCallDialog(response) {
       ),
       "application/xml",
     )
-    .querySelector("tool_call").textContent;
+    .querySelector("tool_call")?.textContent;
   console.log("functionCallString", functionCallString);
+  if (!functionCallString) {
+    return;
+  }
+
   let functionCall;
   try {
     functionCall = JSON.parse(functionCallString);
@@ -198,7 +214,7 @@ function addFunctionCallDialog(response) {
     return;
   }
 
-  if (!allTools.includes(functionCall.name)) {
+  if (!Object.keys(tool).includes(functionCall.name)) {
     console.error("Tool not found", functionCall.name);
     // Create and append error div
     const errorDiv = document.createElement("div");
@@ -213,7 +229,7 @@ function addFunctionCallDialog(response) {
   functionDiv.classList.add("function_call");
 
   const functionNameDiv = document.createElement("div");
-  functionNameDiv.innerHTML = `MLC Assistant wants to perform an action:<br /><b>${getToolInfo(functionCall.name)?.displayName}</b>`;
+  functionNameDiv.innerHTML = `MLC Assistant wants to perform an action:<br /><b>${tool[functionCall.name].displayName}</b>`;
   functionDiv.appendChild(functionNameDiv);
 
   if (parameters && Object.keys(parameters).length > 0) {
@@ -240,6 +256,7 @@ function addFunctionCallDialog(response) {
           {
             role: "tool",
             content: `<tool_response>${response}</tool_response>`,
+            tool_call_id: "",
           },
         ];
         let curMessage = "";
@@ -275,16 +292,16 @@ function updateInitProgressBar(percentage) {
   if (percentage < 0) percentage = 0;
   if (percentage > 1) percentage = 1;
 
-  document.getElementById("progress-bar").style.width = percentage * 100 + "%";
+  document.getElementById("progress-bar")!.style.width = percentage * 100 + "%";
 
   if (percentage >= 1) {
-    document.getElementById("progress-bar-container").classList.add("hidden");
+    document.getElementById("progress-bar-container")!.classList.add("hidden");
   }
 }
 
-document.getElementById("submit").addEventListener("click", () => {
+submitButton.addEventListener("click", () => {
   handleSubmit(false);
 });
-document.getElementById("regenerate").addEventListener("click", () => {
+regenerateButton.addEventListener("click", () => {
   handleSubmit(true);
 });

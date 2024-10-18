@@ -1,13 +1,6 @@
-import {
-  isCurrentPageSupported,
-  initHandler,
-} from "@mlc-ai/web-agent-interface";
+import { tool, State } from "@mlc-ai/web-agent-interface";
 
-let handler = null;
-if (isCurrentPageSupported()) {
-  handler = initHandler();
-  console.log("WAI handler intialized");
-}
+const state = new State();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("received message", message);
@@ -15,7 +8,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { function_name, parameters } = message;
     console.log("Message received from popup:", function_name, parameters);
     try {
-      const response = handler.handleToolCall(function_name, parameters);
+      const response = tool[function_name].implementation(state, parameters);
       console.log("handler response", response);
       sendResponse(response);
     } catch (error) {

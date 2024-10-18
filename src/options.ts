@@ -1,14 +1,16 @@
-const promptCust = document.getElementById("promptCustomization");
+const promptCustomization = document.getElementById(
+  "promptCustomization",
+) as HTMLSelectElement;
 
 chrome.storage.sync.get({ customization: 0 }, (items) => {
-  promptCust.value = items.customization;
+  promptCustomization.value = items.customization;
 });
 
-promptCust.addEventListener("change", function () {
-  if (this.value == 0) {
+promptCustomization.addEventListener("change", function () {
+  if (this.value === "0") {
     console.log("Prompt customization set to default");
     chrome.storage.sync.set({ customization: 0 });
-  } else if (this.value == 1) {
+  } else if (this.value === "1") {
     console.log("Prompt customization set to creative");
     chrome.storage.sync.set({ customization: 1 });
   } else {
