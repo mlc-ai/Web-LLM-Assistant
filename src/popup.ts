@@ -3,7 +3,7 @@ import {
   ChatCompletionMessageParam,
   ExtensionServiceWorkerMLCEngine,
 } from "@mlc-ai/web-llm";
-import { SYSTEM_PROMPT } from "./prompt";
+import { get_system_prompt } from "./prompt";
 
 const engine = new ExtensionServiceWorkerMLCEngine({
   initProgressCallback: (progress) => {
@@ -22,28 +22,55 @@ window.addEventListener("load", () => {
   loadWebllmEngine();
 });
 
-const callToolFunction = async (functionCall) => {
-  console.log("callToolFunction", functionCall);
-  const { name: function_name, arguments: parameters = {} } = functionCall;
+const sendMessageToContentScript = async (message: Object) => {
   const [tab] = await chrome.tabs.query({
     currentWindow: true,
     active: true,
   });
   if (tab.id) {
-    return chrome.tabs.sendMessage(tab.id, {
-      action: "function_call",
-      function_name,
-      parameters,
-    });
+    return chrome.tabs.sendMessage(tab.id, message);
   }
 };
 
+const callToolFunction = async (functionCall) => {
+  const { name: function_name, arguments: parameters = {} } = functionCall;
+  return await sendMessageToContentScript({
+    action: "function_call",
+    function_name,
+    parameters,
+  });
+};
+
+let scope = null;
+let availableTools = Object.values(tool).filter(
+  (t) => t.type === "action" && (!t.scopes),
+);
 const MAX_MESSAGES = 8;
 let messages: ChatCompletionMessageParam[] = [
-  { role: "system", content: SYSTEM_PROMPT },
+  {
+    role: "system",
+    content: get_system_prompt(availableTools),
+  },
 ];
 let lastQuery = null;
 let isGenerating = false;
+
+const updateScopeForPage = async () => {
+  try {
+    const response = await sendMessageToContentScript({
+      action: 'get_scope',
+    });
+    availableTools = Object.values(tool).filter(
+      (t) => t.type === "action" && (!t.scopes || !scope || t.scopes.includes(scope)),
+    );
+    scope = response.scope;
+    console.log("Updated page scope to " + response.scope);
+    console.log("Updated available tools: " + availableTools.map(t => t.name))
+  } catch (e) {
+    console.error(e);
+  }
+}
+updateScopeForPage();
 
 async function loadWebllmEngine() {
   const selectedModel = "Hermes-3-Llama-3.1-8B-q4f32_1-MLC";
@@ -305,3 +332,5 @@ submitButton.addEventListener("click", () => {
 regenerateButton.addEventListener("click", () => {
   handleSubmit(true);
 });
+
+modalInput.focus();

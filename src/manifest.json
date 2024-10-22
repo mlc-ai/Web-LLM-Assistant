@@ -52,6 +52,17 @@
     "page": "options.html",
     "open_in_tab": false
   },
-  "permissions": ["storage", "tabs", "webNavigation", "activeTab"],
+  "permissions": [
+    "storage",
+    "tabs",
+    "webNavigation",
+    "activeTab",
+    "identity",
+    "identity.email"
+  ],
+  "oauth2": {
+    "client_id": "330480786365-tmrf3u2pnssqp24iuol0bljp34qd1i9l.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/calendar"]
+  },
   "host_permissions": ["<all_urls>"]
 }
