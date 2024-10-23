@@ -1,9 +1,11 @@
-import { tool } from "@mlc-ai/web-agent-interface";
+import { CallerType, Scope, State, tool } from "@mlc-ai/web-agent-interface";
 import {
   ChatCompletionMessageParam,
   ExtensionServiceWorkerMLCEngine,
 } from "@mlc-ai/web-llm";
 import { get_system_prompt } from "./prompt";
+
+const state = new State();
 
 const engine = new ExtensionServiceWorkerMLCEngine({
   initProgressCallback: (progress) => {
@@ -22,6 +24,25 @@ window.addEventListener("load", () => {
   loadWebllmEngine();
 });
 
+const getScopeForPage = (url: string | undefined): Scope => {
+  if (!url) {
+    return Scope.Any;
+  }
+  if (/^https:\/\/www\.overleaf\.com\/project\/.+$/.test(url)) {
+    /* Overleaf document */
+    return Scope.Overleaf;
+  }
+  return Scope.Any;
+};
+
+const getCurrentActiveTabUrl: () => Promise<string | undefined> = async () =>
+  new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const activeTab = tabs[0];
+      resolve(activeTab.url);
+    });
+  });
+
 const sendMessageToContentScript = async (message: Object) => {
   const [tab] = await chrome.tabs.query({
     currentWindow: true,
@@ -34,16 +55,26 @@ const sendMessageToContentScript = async (message: Object) => {
 
 const callToolFunction = async (functionCall) => {
   const { name: function_name, arguments: parameters = {} } = functionCall;
-  return await sendMessageToContentScript({
-    action: "function_call",
-    function_name,
-    parameters,
-  });
+  const caller = tool[function_name].caller;
+  console.log("Call tool", function_name, parameters);
+  if (caller === CallerType.ContentScript) {
+    try {
+      return await sendMessageToContentScript({
+        action: "function_call",
+        function_name,
+        parameters,
+      });
+    } catch (e) {
+      console.error(e);
+      return { error: e.message };
+    }
+  }
+  return tool[function_name].implementation(state, parameters);
 };
 
-let scope = null;
+let scope = Scope.Any;
 let availableTools = Object.values(tool).filter(
-  (t) => t.type === "action" && (!t.scopes),
+  (t) => t.type === "action" && t.scope === Scope.Any,
 );
 const MAX_MESSAGES = 8;
 let messages: ChatCompletionMessageParam[] = [
@@ -52,30 +83,28 @@ let messages: ChatCompletionMessageParam[] = [
     content: get_system_prompt(availableTools),
   },
 ];
-let lastQuery = null;
+let lastQuery = "";
 let isGenerating = false;
 
 const updateScopeForPage = async () => {
-  try {
-    const response = await sendMessageToContentScript({
-      action: 'get_scope',
-    });
-    availableTools = Object.values(tool).filter(
-      (t) => t.type === "action" && (!t.scopes || !scope || t.scopes.includes(scope)),
-    );
-    scope = response.scope;
-    console.log("Updated page scope to " + response.scope);
-    console.log("Updated available tools: " + availableTools.map(t => t.name))
-  } catch (e) {
-    console.error(e);
-  }
-}
+  const url = await getCurrentActiveTabUrl();
+  scope = getScopeForPage(url);
+  availableTools = Object.values(tool).filter(
+    (t) =>
+      t.type === "action" &&
+      (t.scope === Scope.Any || t.scope?.includes(scope)),
+  );
+  console.log("Updated page scope to " + scope);
+  console.log("Updated available tools: " + availableTools.map((t) => t.name));
+};
 updateScopeForPage();
 
 async function loadWebllmEngine() {
   const selectedModel = "Hermes-3-Llama-3.1-8B-q4f32_1-MLC";
-  await engine.reload(selectedModel);
-
+  await engine.reload(selectedModel, {
+    context_window_size: 131072, // 128K context window
+    temperature: 0.2,
+  });
   console.log("Engine loaded.");
   enableSubmit();
   document.addEventListener("keydown", function (event) {
@@ -125,30 +154,35 @@ async function handleSubmit(regenerate) {
     enableSubmit();
     return;
   }
-  let query;
+  let query: string = "";
   if (regenerate) {
     query = lastQuery;
     if (messages[messages.length - 1].role === "assistant") {
       messages.pop();
     }
   } else {
+    const pageContent = await callToolFunction({
+      name: "getPageContent",
+    });
     const currentSelection = await callToolFunction({
       name: "getSelectedText",
     });
-    let context = "";
+    let context = `# Context\n\n`;
+    const activeUrl = await getCurrentActiveTabUrl();
+    if (activeUrl) {
+      context += `### Current site url:\n${activeUrl}\n\n`;
+    }
+    if (pageContent) {
+      context += `### Page content:\n${activeUrl}\n\n`;
+    }
     if (currentSelection) {
       console.log("currentSelection", currentSelection);
-      context =
-        "<Context Start>\n## User's current selected text:\n" +
-        currentSelection +
-        "<Context End>";
+      context += `### User's current selected content:\n${currentSelection}\n\n`;
     }
-    query = modalInput.value;
+    context += `### Current Date and Time:\n${new Date().toISOString()}\n\n`;
+    query = context + "\n\n# User Query:\n" + modalInput.value;
     modalInput.value = "";
-    messages = [
-      ...messages,
-      { role: "user", content: context + "\n\n" + query },
-    ];
+    messages = [...messages, { role: "user", content: query }];
     lastQuery = query;
   }
 
@@ -157,7 +191,11 @@ async function handleSubmit(regenerate) {
   }
 
   questionDiv.classList.remove("hidden");
-  questionDiv.textContent = "You: " + query;
+  questionDiv.textContent =
+    "You: " +
+    query.substring(
+      query.lastIndexOf("# User Query\n") + "# User Query\n".length,
+    );
 
   clearAnswer();
   let curMessage = "";

@@ -1,15 +1,6 @@
-import { tool, State, Scope } from "@mlc-ai/web-agent-interface";
+import { tool, State } from "@mlc-ai/web-agent-interface";
 
 const state = new State();
-
-const getScopeForPage = (): Scope | null => {
-  const currentUrl = window.location.href;
-  if (/^https:\/\/www\.overleaf\.com\/project\/.+$/.test(currentUrl)) {
-    /* Overleaf document */
-    return Scope.Overleaf;
-  }
-  return null;
-}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("received message", message);
@@ -24,7 +15,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.error("Error in handler response", error);
       sendResponse({ error: error.message });
     }
-  } else if (message.action === "get_scope") {
-    sendResponse({ scope: getScopeForPage() });
   }
 });

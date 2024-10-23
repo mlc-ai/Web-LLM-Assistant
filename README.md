@@ -3,9 +3,10 @@
 
 <a href="https://github.com/mlc-ai/web-llm"><img alt="Related Repository: WebLLM" src="https://img.shields.io/badge/Related_Repo-WebLLM-fafbfc?logo=github"></a>
 <a href="https://discord.gg/9Xpy2HGBuD"><img alt="Join Discord" src="https://img.shields.io/badge/Join-Discord-7289DA?logo=discord&logoColor=white"></a>
+
 </div>
 
-Chat with AI assistant running locally in your browser powered by WebGPU. This project is currently under development and supports document editing assistance on Overleaf. More features are planned. 
+Chat with AI assistant running locally in your browser powered by WebGPU. This project is currently under development and supports document editing assistance on Overleaf. More features are planned.
 
 ![demo](https://github.com/mlc-ai/mlc-assistant/assets/11940172/51f0668d-860e-4014-b104-4d2e0e7b334e)
 
