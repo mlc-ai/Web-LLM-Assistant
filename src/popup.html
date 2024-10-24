@@ -10,12 +10,11 @@
     <div class="modal" id="modal">
       <div id="init-container">
         <img id="logo" src="./icons/icon-128.png" alt="WebLLM Assistant Logo" />
+        <p>Note: The very first load can take a long time!</p>
         <div class="progress-container" id="progress-bar-container">
           <div class="progress-bar" id="progress-bar"></div>
         </div>
-        <p id="intro" class="hidden">
-          Hi, what can I do for you?
-        </p>
+        <p id="intro" class="hidden">Hi, what can I do for you?</p>
       </div>
       <div class="question hidden" id="question"></div>
       <div class="answer hidden" id="answer"></div>
@@ -23,74 +22,14 @@
         <div class="input">
           <input
             type="search"
-            placeholder="Book my Google calendar for this event..."
+            placeholder="Add this event to my calendar..."
             class="modalInput"
             id="modalInput"
           />
         </div>
-        <div id="loading" class="button">
-          <svg
-            fill="#ffffff"
-            version="1.1"
-            id="Layer_1"
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-            viewBox="0 0 330 330"
-            xml:space="preserve"
-          >
-            <g id="XMLID_2_">
-              <path
-                id="XMLID_4_"
-                d="M97.5,165c0-8.284-6.716-15-15-15h-60c-8.284,0-15,6.716-15,15s6.716,15,15,15h60
-		C90.784,180,97.5,173.284,97.5,165z"
-              />
-              <path
-                id="XMLID_5_"
-                d="M307.5,150h-30c-8.284,0-15,6.716-15,15s6.716,15,15,15h30c8.284,0,15-6.716,15-15S315.784,150,307.5,150z"
-              />
-              <path
-                id="XMLID_6_"
-                d="M172.5,90c8.284,0,15-6.716,15-15V15c0-8.284-6.716-15-15-15s-15,6.716-15,15v60
-		C157.5,83.284,164.216,90,172.5,90z"
-              />
-              <path
-                id="XMLID_7_"
-                d="M172.501,240c-8.284,0-15,6.716-15,15v60c0,8.284,6.716,15,15,15c8.284,0,15-6.716,15-15v-60
-		C187.501,246.716,180.785,240,172.501,240z"
-              />
-              <path
-                id="XMLID_8_"
-                d="M77.04,48.327c-5.856-5.858-15.354-5.857-21.213,0c-5.858,5.858-5.858,15.355,0,21.213l42.427,42.428
-		c2.929,2.929,6.768,4.394,10.606,4.394c3.838,0,7.678-1.465,10.606-4.393c5.858-5.858,5.858-15.355,0-21.213L77.04,48.327z"
-              />
-              <path
-                id="XMLID_9_"
-                d="M246.746,218.034c-5.857-5.857-15.355-5.857-21.213,0c-5.858,5.858-5.857,15.355,0,21.213l42.428,42.426
-		c2.929,2.929,6.768,4.393,10.607,4.393c3.839,0,7.678-1.465,10.606-4.393c5.858-5.858,5.858-15.355,0-21.213L246.746,218.034z"
-              />
-              <path
-                id="XMLID_10_"
-                d="M98.254,218.034L55.828,260.46c-5.858,5.858-5.858,15.355,0,21.213c2.929,2.929,6.768,4.393,10.607,4.393
-		c3.839,0,7.678-1.464,10.606-4.393l42.426-42.426c5.858-5.858,5.858-15.355,0-21.213
-		C113.609,212.176,104.111,212.176,98.254,218.034z"
-              />
-            </g>
-          </svg>
-        </div>
-        <button id="submit" class="hidden button" disabled>
-          <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-            <g data-name="1" id="_1">
-              <path
-                d="M291.48,449.94A15,15,0,0,1,278,441.5L207.5,296.57,62.57,226.08a15,15,0,0,1,1-27.41L435.48,49.08A15,15,0,0,1,455,68.6L305.4,440.54A15,15,0,0,1,292,449.93Zm-185.38-236,119.18,58a15,15,0,0,1,6.93,6.93l58,119.18L414,90Z"
-              />
-              <path
-                d="M218.72,300.35a15,15,0,0,1-10.6-25.61L430.47,52.39a15,15,0,1,1,21.21,21.22L229.33,296A15,15,0,0,1,218.72,300.35Z"
-              />
-            </g>
-          </svg>
-        </button>
+        <button id="submit" disabled></button>
         <button class="hidden button" id="regenerate" disabled>
-          <img src="icons/redo.png" alt="Regenerate" class="regenerate-img" />
+          <i data-lucide="rotate-cw"></i>
         </button>
       </div>
     </div>

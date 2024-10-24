@@ -1,9 +1,29 @@
-import { CallerType, Scope, State, tool } from "@mlc-ai/web-agent-interface";
+import {
+  CallerType,
+  Scope,
+  State,
+  tool,
+  ToolName,
+} from "@mlc-ai/web-agent-interface";
 import {
   ChatCompletionMessageParam,
   ExtensionServiceWorkerMLCEngine,
 } from "@mlc-ai/web-llm";
 import { get_system_prompt } from "./prompt";
+import showdown from "showdown";
+import {
+  createElement,
+  createIcons,
+  Send,
+  LoaderCircle,
+  RotateCw,
+} from "lucide";
+
+const markdownRenderer = new showdown.Converter({
+  simplifiedAutoLink: true,
+  excludeTrailingPunctuationFromURLs: true,
+  openLinksInNewWindow: true,
+});
 
 const state = new State();
 
@@ -21,6 +41,13 @@ const engine = new ExtensionServiceWorkerMLCEngine({
   },
 });
 window.addEventListener("load", () => {
+  createIcons({
+    icons: {
+      Send,
+      LoaderCircle,
+      RotateCw,
+    },
+  });
   loadWebllmEngine();
 });
 
@@ -53,7 +80,42 @@ const sendMessageToContentScript = async (message: Object) => {
   }
 };
 
-const callToolFunction = async (functionCall) => {
+let currentAnimation: string | null = null;
+let pendingAnimationTick = -Infinity;
+let pendingAnimationInterval: number | null = null;
+
+const startPendingAnimation = (status: string) => {
+  if (currentAnimation === status) {
+    return;
+  }
+  answerDiv.classList.remove("hidden");
+  answerDiv.textContent = "";
+  stopPendingAnimation();
+
+  currentAnimation = status;
+  pendingAnimationTick = 0;
+  pendingAnimationInterval = setInterval(() => {
+    if (pendingAnimationTick >= 0) {
+      answerDiv.textContent =
+        status + ".".repeat((pendingAnimationTick % 3) + 1);
+      pendingAnimationTick += 1;
+    }
+  }, 1000);
+};
+
+const stopPendingAnimation = () => {
+  if (pendingAnimationInterval) {
+    currentAnimation = null;
+    pendingAnimationTick = -Infinity;
+    clearInterval(pendingAnimationInterval);
+    pendingAnimationInterval = null;
+  }
+};
+
+const callToolFunction = async (functionCall: {
+  name: ToolName;
+  arguments?: Object;
+}) => {
   const { name: function_name, arguments: parameters = {} } = functionCall;
   const caller = tool[function_name].caller;
   console.log("Call tool", function_name, parameters);
@@ -122,7 +184,6 @@ async function loadWebllmEngine() {
 }
 
 const submitButton = document.getElementById("submit") as HTMLButtonElement;
-const loadingIcon = document.getElementById("loading") as HTMLElement;
 const regenerateButton = document.getElementById(
   "regenerate",
 ) as HTMLButtonElement;
@@ -130,18 +191,24 @@ const modalInput = document.getElementById("modalInput") as HTMLInputElement;
 const answerDiv = document.getElementById("answer") as HTMLElement;
 const questionDiv = document.getElementById("question") as HTMLElement;
 
+function hideInitContainer() {
+  document.getElementById("init-container")?.classList.add("hidden");
+}
+
 function disableSubmit() {
   submitButton.disabled = true;
-  loadingIcon.classList.remove("hidden");
-  submitButton.classList.add("hidden");
+  submitButton.innerHTML = "";
+  const icon = createElement(LoaderCircle);
+  icon.classList.add("spin");
+  submitButton.appendChild(icon);
   regenerateButton.classList.add("hidden");
   regenerateButton.disabled = true;
 }
 
 function enableSubmit() {
   submitButton.disabled = false;
-  loadingIcon.classList.add("hidden");
-  submitButton.classList.remove("hidden");
+  submitButton.innerHTML = "";
+  submitButton.appendChild(createElement(Send));
   if (messages.length > 1) {
     regenerateButton.classList.remove("hidden");
     regenerateButton.disabled = false;
@@ -153,6 +220,7 @@ async function handleSubmit(regenerate) {
     return;
   }
   isGenerating = true;
+  hideInitContainer();
   disableSubmit();
 
   if ((regenerate && !lastQuery) || (!regenerate && !modalInput.value)) {
@@ -178,12 +246,13 @@ async function handleSubmit(regenerate) {
       context += `### Current site url:\n${activeUrl}\n\n`;
     }
     if (pageContent) {
-      context += `### Page content:\n${activeUrl}\n\n`;
+      context += `### Page content:\n${pageContent}\n\n`;
     }
     if (currentSelection) {
       console.log("currentSelection", currentSelection);
       context += `### User's current selected content:\n${currentSelection}\n\n`;
     }
+    context += `### User's timezone:\n${Intl.DateTimeFormat().resolvedOptions().timeZone}\n\n`;
     context += `### Current Date and Time:\n${new Date().toISOString()}\n\n`;
     query = context + "\n\n# User Query:\n" + modalInput.value;
     modalInput.value = "";
@@ -196,34 +265,41 @@ async function handleSubmit(regenerate) {
   }
 
   questionDiv.classList.remove("hidden");
-  questionDiv.textContent =
-    "You: " +
-    query.substring(
-      query.lastIndexOf("# User Query\n") + "# User Query\n".length,
-    );
+  questionDiv.textContent = query.substring(
+    query.lastIndexOf("# User Query:\n") + "# User Query:\n".length,
+  );
 
   clearAnswer();
+  startPendingAnimation("Loading");
+
   let curMessage = "";
   console.log("messages", messages);
-  const completion = await engine.chat.completions.create({
-    stream: true,
-    messages,
-    temperature: 0,
-  });
+  try {
+    const completion = await engine.chat.completions.create({
+      stream: true,
+      messages,
+      temperature: 0,
+    });
 
-  for await (const chunk of completion) {
-    const curDelta = chunk.choices[0].delta.content;
-    if (curDelta) {
-      curMessage += curDelta;
+    for await (const chunk of completion) {
+      const curDelta = chunk.choices[0].delta.content;
+      if (curDelta) {
+        curMessage += curDelta;
+      }
+      await updateAnswer(curMessage);
     }
-    updateAnswer(curMessage);
-  }
 
-  const finalMessage = await engine.getMessage();
-  messages = [...messages, { role: "assistant", content: finalMessage }];
-  updateAnswer(finalMessage);
-  isGenerating = false;
-  enableSubmit();
+    const finalMessage = await engine.getMessage();
+    console.log("Response", finalMessage);
+    messages = [...messages, { role: "assistant", content: finalMessage }];
+    updateAnswer(finalMessage);
+  } catch (e) {
+    console.error("Error while generating.", e);
+    updateAnswer(e);
+  } finally {
+    isGenerating = false;
+    enableSubmit();
+  }
 }
 
 function clearAnswer() {
@@ -231,8 +307,25 @@ function clearAnswer() {
   answerDiv.innerHTML = "";
 }
 
-function updateAnswer(response) {
-  answerDiv.classList.remove("hidden");
+async function updateAnswer(response: string) {
+  // ignore scratchpad content and only show output
+  const scratchpadIndex = response.indexOf("<scratchpad>");
+  const outputIndex = response.indexOf("<output>");
+  if (scratchpadIndex < 0 && outputIndex < 0) {
+    // LLM doesn't follow the format. Directly output
+  } else if (scratchpadIndex >= 0 && outputIndex < 0) {
+    // LLM is thinking
+    startPendingAnimation("Thinking");
+    return;
+  } else {
+    // LLM has started generating output
+    stopPendingAnimation();
+    const outputEndIndex = response.indexOf("</output>");
+    response = response.substring(
+      outputIndex + "<output>".length,
+      outputEndIndex > outputIndex ? outputEndIndex : response.length,
+    );
+  }
   answerDiv.innerHTML = "";
   if (response.includes("<tool_call>") && response.includes("</tool_call>")) {
     const answer1 = response.substring(0, response.indexOf("<tool_call>"));
@@ -246,17 +339,17 @@ function updateAnswer(response) {
 
     if (answer1) {
       const answer1Div = document.createElement("div");
-      answer1Div.textContent = answer1;
+      answer1Div.innerHTML = markdownRenderer.makeHtml(answer1);
       answerDiv.appendChild(answer1Div);
     }
     addFunctionCallDialog(functionCall);
     if (answer2) {
       const answer2Div = document.createElement("div");
-      answer2Div.textContent = answer2;
+      answer2Div.innerHTML = markdownRenderer.makeHtml(answer1);
       answerDiv.appendChild(answer2Div);
     }
   } else {
-    answerDiv.textContent = response;
+    answerDiv.innerHTML = markdownRenderer.makeHtml(response);
   }
 }
 
@@ -294,19 +387,12 @@ function addFunctionCallDialog(response) {
     return;
   }
 
-  const parameters = functionCall.arguments || {};
   const functionDiv = document.createElement("div");
   functionDiv.classList.add("function_call");
 
   const functionNameDiv = document.createElement("div");
   functionNameDiv.innerHTML = `MLC Assistant wants to perform an action:<br /><b>${tool[functionCall.name].displayName}</b>`;
   functionDiv.appendChild(functionNameDiv);
-
-  if (parameters && Object.keys(parameters).length > 0) {
-    const parametersDiv = document.createElement("div");
-    parametersDiv.textContent = `Parameters: ${JSON.stringify(parameters)}`;
-    functionDiv.appendChild(parametersDiv);
-  }
 
   const functionActionsDiv = document.createElement("div");
   functionActionsDiv.classList.add("function_actions");
@@ -318,14 +404,22 @@ function addFunctionCallDialog(response) {
 
   continueButton.addEventListener("click", async () => {
     disableSubmit();
+    continueButton.classList.add("hidden");
+    functionDiv.appendChild(createElement(LoaderCircle));
     try {
       const response = await callToolFunction(functionCall);
-      if (response && response.length > 0) {
+      if (typeof response === "object" && response["htmlLink"]) {
+        await chrome.tabs.create({ url: response["htmlLink"] });
+      } else if (
+        response &&
+        ((typeof response === "string" && response.length > 0) ||
+          typeof response === "object")
+      ) {
         messages = [
           ...messages,
           {
             role: "tool",
-            content: `<tool_response>${response}</tool_response>`,
+            content: `<tool_response>${JSON.stringify(response)}</tool_response>`,
             tool_call_id: "",
           },
         ];

@@ -17,6 +17,36 @@ body {
   min-width: 400px;
   background-color: rgba(75, 83, 99, 0.9);
 }
+a {
+  color: #9e9eff;
+}
+a:visited {
+  color: #d0adf0;
+}
+a:active {
+  color: #ff9e9e;
+}
+svg {
+  width: 1rem;
+  height: 1rem;
+}
+button {
+  border: none;
+}
+button svg {
+  stroke: rgba(75, 83, 99, 0.8);
+}
+button:not(:disabled) {
+  cursor: pointer;
+}
+button:hover,
+button:disabled {
+  background-color: rgba(75, 83, 99, 0.4);
+}
+button:hover:not(:disabled) svg,
+button:disabled svg {
+  stroke: white;
+}
 .modal {
   align-items: center;
   display: flex;
@@ -73,16 +103,14 @@ body {
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
 }
-.regenerate-img {
-  width: 15px;
-  height: 15px;
-}
 .answer,
 .question {
   padding-left: 1rem;
   padding-right: 1rem;
   color: white;
   font-size: 1rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .question {
   padding: 1rem;
@@ -91,35 +119,16 @@ body {
 .hidden {
   display: none !important;
 }
-#input-container .button {
+#input-container button {
   width: 2rem;
   height: 2rem;
   border-radius: 0.25rem;
-  background-color: rgba(75, 83, 99, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+#input-container button:not(:disabled) {
   cursor: pointer;
-}
-#loading {
-  padding: 0.35rem;
-}
-#loading svg {
-  animation: spin 2s linear infinite;
-}
-#submit:disabled {
-  background-color: rgba(75, 83, 99, 0.4);
-}
-#submit:not(:disabled) {
-  cursor: pointer;
-}
-#submit:hover:not(:disabled) {
-  background-color: rgba(75, 83, 99, 0.8);
-}
-#submit svg {
-  width: 1rem;
-  height: 1rem;
-  fill: white;
 }
 #init-container {
   display: flex;
@@ -129,6 +138,11 @@ body {
   flex-direction: column;
   position: relative;
   width: 80%;
+  color: white;
+}
+#init-container p {
+  font-size: 0.8rem;
+  margin-bottom: 0;
 }
 #logo {
   margin-top: 20px;
@@ -146,10 +160,16 @@ body {
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
+.function_call svg {
+  stroke: white;
+}
 .function_actions {
   display: flex;
   justify-content: center;
   margin-top: 0.75rem;
+}
+.spin {
+  animation: spin 2s linear infinite;
 }
 .progress-container {
   width: calc(100% - 20px);

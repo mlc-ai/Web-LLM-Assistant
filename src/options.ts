@@ -1,9 +1,7 @@
 const temperatureSelect = document.getElementById(
   "temperature",
 ) as HTMLSelectElement;
-const contextSelect = document.getElementById(
-  "context",
-) as HTMLSelectElement;
+const contextSelect = document.getElementById("context") as HTMLSelectElement;
 
 chrome.storage.sync.get({ temperature: 0.5, contextLength: 16384 }, (items) => {
   temperatureSelect.value = items.temperature;
