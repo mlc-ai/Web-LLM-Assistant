@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "WebLLM Assistant",
   "version": "0.1.0",
-  "description": "AI assistant within Chrome browser.",
+  "description": "AI assistant within your browser.",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",

@@ -102,7 +102,7 @@ updateScopeForPage();
 async function loadWebllmEngine() {
   const selectedModel = "Hermes-3-Llama-3.1-8B-q4f32_1-MLC";
   await engine.reload(selectedModel, {
-    context_window_size: 131072, // 128K context window
+    context_window_size: 65536,
     temperature: 0.2,
   });
   console.log("Engine loaded.");
@@ -360,7 +360,12 @@ function updateInitProgressBar(percentage) {
   document.getElementById("progress-bar")!.style.width = percentage * 100 + "%";
 
   if (percentage >= 1) {
-    document.getElementById("progress-bar-container")!.classList.add("hidden");
+    document.getElementById("progress-bar-container")?.classList.add("hidden");
+    document.getElementById("into")?.classList.remove("hidden");
+    document.getElementById("input-container")?.classList.remove("hidden");
+
+    enableSubmit();
+    modalInput.focus();
   }
 }
 
@@ -370,5 +375,3 @@ submitButton.addEventListener("click", () => {
 regenerateButton.addEventListener("click", () => {
   handleSubmit(true);
 });
-
-modalInput.focus();

@@ -8,13 +8,22 @@
   </head>
   <body>
     <div class="modal" id="modal">
+      <div id="init-container">
+        <img id="logo" src="./icons/icon-128.png" alt="WebLLM Assistant Logo" />
+        <div class="progress-container" id="progress-bar-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <p id="intro" class="hidden">
+          Hi, what can I do for you?
+        </p>
+      </div>
       <div class="question hidden" id="question"></div>
       <div class="answer hidden" id="answer"></div>
-      <div class="input-container">
+      <div id="input-container" class="hidden">
         <div class="input">
           <input
             type="search"
-            placeholder="How can I help?"
+            placeholder="Book my Google calendar for this event..."
             class="modalInput"
             id="modalInput"
           />
@@ -83,10 +92,6 @@
         <button class="hidden button" id="regenerate" disabled>
           <img src="icons/redo.png" alt="Regenerate" class="regenerate-img" />
         </button>
-      </div>
-
-      <div class="progress-container" id="progress-bar-container">
-        <div class="progress-bar" id="progress-bar"></div>
       </div>
     </div>
     <script src="popup.ts" type="module"></script>

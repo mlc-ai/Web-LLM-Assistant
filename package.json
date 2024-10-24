@@ -1,7 +1,7 @@
 {
   "name": "webllm-assistant",
   "version": "1.0.0",
-  "description": "AI assistant within Chrome browser.",
+  "description": "AI assistant within your browser.",
   "private": true,
   "scripts": {
     "build": "parcel build src/manifest.json --config @parcel/config-webextension",
