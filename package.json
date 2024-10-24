@@ -31,7 +31,10 @@
     "util": "^0.12.5"
   },
   "dependencies": {
-    "@mlc-ai/web-agent-interface": "file:../web-agent-interface/lib",
-    "@mlc-ai/web-llm": "^0.2.73"
+    "@mlc-ai/web-agent-interface": "^0.0.1",
+    "@mlc-ai/web-llm": "^0.2.73",
+    "dompurify": "^3.1.7",
+    "jsdom": "^25.0.1",
+    "marked": "^14.1.3"
   }
 }
