@@ -100,11 +100,16 @@ const updateScopeForPage = async () => {
 updateScopeForPage();
 
 async function loadWebllmEngine() {
+  const options = await chrome.storage.sync.get({
+    temperature: 0.5,
+    contextLength: 4096,
+  });
   const selectedModel = "Hermes-3-Llama-3.1-8B-q4f32_1-MLC";
   await engine.reload(selectedModel, {
-    context_window_size: 65536,
-    temperature: 0.2,
+    context_window_size: options["contextLength"],
+    temperature: options["temperature"],
   });
+  console.log("Engine loaded.");
   console.log("Engine loaded.");
   enableSubmit();
   document.addEventListener("keydown", function (event) {

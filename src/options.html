@@ -6,18 +6,27 @@
 
   <body>
     <div class="container">
-      <div class="promptCustomizationOption">
-        <form action="#">
-          Response Type
-          <label class="promptCustom">
-            <select id="promptCustomization" onchange="this.form.submit();">
-              <option value="0">Default</option>
-              <option value="1">Creative</option>
-              <option value="2">Precise</option>
-            </select>
-          </label>
-        </form>
-      </div>
+      <form action="#">
+        <label for="temperature">Response Style</label>
+        <select id="temperature" name="temperature">
+          <option value="0.5">Default</option>
+          <option value="0.8">Creative</option>
+          <option value="0.2">Precise</option>
+        </select>
+      </form>
+      <form action="#">
+        <label for="context">Context Window Length:</label>
+        <select id="context" name="context">
+          <option value="1024">1K</option>
+          <option value="2048">2K</option>
+          <option value="4096">4K</option>
+          <option value="8192">8K</option>
+          <option value="16384">16K</option>
+          <option value="32768">32K</option>
+          <option value="65536">64K</option>
+          <option value="131072">128K</option>
+        </select>
+      </form>
     </div>
     <script src="options.ts"></script>
   </body>
